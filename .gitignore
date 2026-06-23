@@ -1,0 +1,20 @@
+# Large dataset files (download separately from challenge pack)
+**/*.jsonl
+**/[PUB]*/
+
+# Local analysis scripts (not part of submission repo)
+analyze_*.py
+strategy_probe.py
+
+# Python
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
