@@ -1,8 +1,4 @@
-# Large dataset files (download separately from challenge pack)
-**/*.jsonl
-**/[PUB]*/
-
-# Local analysis scripts (not part of submission repo)
+# Local analysis scripts (optional dev tooling)
 analyze_*.py
 strategy_probe.py
 
@@ -18,3 +14,7 @@ venv/
 Thumbs.db
 .idea/
 .vscode/
+__MACOSX/
+
+# Original challenge pack folder (duplicated in data/ and docs/)
+[PUB]*/
