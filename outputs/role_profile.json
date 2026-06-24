@@ -1,0 +1,51 @@
+{
+  "target_titles": [
+    "Senior AI Engineer",
+    "AI Engineer"
+  ],
+  "required_capabilities": [
+    "LLM fine-tuning",
+    "LoRA",
+    "QLoRA",
+    "PEFT",
+    "RAG",
+    "embeddings",
+    "sentence-transformers",
+    "OpenAI embeddings",
+    "BGE",
+    "E5",
+    "retrieval",
+    "ranking",
+    "hybrid retrieval",
+    "vector database",
+    "Pinecone",
+    "Weaviate",
+    "Qdrant",
+    "Milvus",
+    "FAISS",
+    "Elasticsearch",
+    "OpenSearch",
+    "LangChain",
+    "transformers",
+    "NLP",
+    "computer vision",
+    "XGBoost",
+    "learning-to-rank",
+    "A/B testing",
+    "NDCG",
+    "MRR",
+    "Python",
+    "distributed systems",
+    "inference optimization"
+  ],
+  "nice_to_have": [
+    "open-source contributions",
+    "HR-tech",
+    "recruiting tech",
+    "marketplace products"
+  ],
+  "seniority": "senior",
+  "min_experience_years": 6.0,
+  "preferred_work_mode": "hybrid",
+  "domain": "GenAI"
+}
