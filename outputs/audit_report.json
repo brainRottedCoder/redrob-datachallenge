@@ -1,0 +1,54 @@
+{
+  "runtime_seconds": 333.51,
+  "title_distribution": {
+    "AI Engineer": 10,
+    "Senior NLP Engineer": 4,
+    "Senior Machine Learning Engineer": 3,
+    "Applied ML Engineer": 4,
+    "Senior Data Scientist": 6,
+    "Machine Learning Engineer": 9,
+    "Search Engineer": 10,
+    "Recommendation Systems Engineer": 8,
+    "NLP Engineer": 2,
+    "Senior AI Engineer": 2,
+    "Analytics Engineer": 5,
+    "Backend Engineer": 6,
+    "Senior Applied Scientist": 1,
+    "Senior Software Engineer": 6,
+    "Data Engineer": 8,
+    "Lead AI Engineer": 1,
+    "Software Engineer": 9,
+    "Senior Data Engineer": 6
+  },
+  "trap_exclusion": [
+    "CAND_0000339",
+    "CAND_0004989"
+  ],
+  "top_5": [
+    {
+      "candidate_id": "CAND_0055992",
+      "title": "AI Engineer",
+      "final_score": 0.6706
+    },
+    {
+      "candidate_id": "CAND_0046064",
+      "title": "Senior NLP Engineer",
+      "final_score": 0.6412
+    },
+    {
+      "candidate_id": "CAND_0015578",
+      "title": "AI Engineer",
+      "final_score": 0.6298
+    },
+    {
+      "candidate_id": "CAND_0055905",
+      "title": "Senior Machine Learning Engineer",
+      "final_score": 0.6096
+    },
+    {
+      "candidate_id": "CAND_0062247",
+      "title": "AI Engineer",
+      "final_score": 0.5974
+    }
+  ]
+}

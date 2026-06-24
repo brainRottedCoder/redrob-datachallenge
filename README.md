@@ -1,39 +1,35 @@
-# Redrob Datachallenge — FitRank
+# FitRank — Intelligent Candidate Discovery & Ranking
 
-Hackathon project for the **Redrob Intelligent Candidate Discovery & Ranking Challenge** — FitRank candidate ranking system.
+Offline, explainable candidate ranking for the Redrob Data & AI Challenge.
 
-## Repository contents
-
-| Path | Description |
-|------|-------------|
-| `PRD_Redrob_FitRank.md` | Full product requirements & implementation plan |
-| `data/candidates.jsonl` | 100,000 candidate profiles (Git LFS) |
-| `data/sample_candidates.json` | Sample profiles for development |
-| `data/sample_submission.csv` | Submission format reference |
-| `data/candidate_schema.json` | JSON schema for candidate profiles |
-| `docs/job_description.docx` | Role/job description for ranking |
-| `docs/submission_spec.docx` | Official submission specification |
-| `docs/redrob_signals_doc.docx` | Redrob platform signals documentation |
-| `validate_submission.py` | Validates ranked output CSV |
-| `submission_metadata_template.yaml` | Metadata template for submission |
-
-## Clone with Git LFS
-
-The main dataset (`candidates.jsonl`, ~465 MB) is stored with **Git LFS** because it exceeds GitHub's 100 MB file limit.
+## Quickstart
 
 ```bash
-git lfs install
-git clone https://github.com/brainRottedCoder/redrob-datachallenge.git
-cd redrob-datachallenge
-git lfs pull
-```
-
-## Validate a submission
-
-```bash
+pip install -r requirements.txt
+python rank.py --candidates data/candidates.jsonl --jd data/job_description.txt --out outputs/submission.csv
 python validate_submission.py outputs/submission.csv
 ```
 
-## Approach
+## Tests
 
-See [`PRD_Redrob_FitRank.md`](PRD_Redrob_FitRank.md) for architecture, scoring methodology, and implementation plan.
+```bash
+pytest tests/ -v
+```
+
+## Demo
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+## Architecture
+
+See `PRD_Redrob_FitRank.md` for the full 10-phase pipeline: JD parsing, title gate, career evidence, coherence, skill trust, Redrob signals, and ranked CSV output.
+
+## Reproduce submission
+
+```bash
+make install
+make run
+make validate
+```

@@ -1,0 +1,9 @@
+team_name: "FitRank"
+participants: []
+repository_url: "https://github.com/brainRottedCoder/redrob-datachallenge"
+compute_environment: "Local CPU, Python 3.11+"
+ai_tools_used: ["Cursor"]
+methodology_summary: "Profile coherence-first ranking with career evidence, skill trust, and Redrob signals."
+declarations:
+  original_work: true
+  external_api_calls_during_ranking: false

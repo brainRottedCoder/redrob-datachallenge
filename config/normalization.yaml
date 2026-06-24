@@ -1,0 +1,5 @@
+# 95th-percentile caps for engagement signals (approximate from dataset probes)
+profile_views_received_30d: 120
+search_appearance_30d: 45
+saved_by_recruiters_30d: 18
+career_ml_depth_max: 15
