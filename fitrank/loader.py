@@ -60,11 +60,14 @@ def parse_candidate(
 def load_candidates(
     path: str | Path,
     schema_path: str | Path | None = None,
+    validate: bool = True,
 ) -> Iterator[Candidate]:
     """Stream candidates from JSONL or a JSON array file."""
     source = Path(path)
-    schema = Path(schema_path) if schema_path else _default_schema_path()
-    validator = Draft7Validator(_load_schema(schema))
+    validator = None
+    if validate:
+        schema = Path(schema_path) if schema_path else _default_schema_path()
+        validator = Draft7Validator(_load_schema(schema))
 
     if source.suffix.lower() == ".jsonl":
         yield from _stream_jsonl(source, validator)

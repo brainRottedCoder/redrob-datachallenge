@@ -1,5 +1,5 @@
 {
-  "runtime_seconds": 218.59,
+  "runtime_seconds": 114.53,
   "title_distribution": {
     "Senior NLP Engineer": 4,
     "AI Engineer": 9,
@@ -21,8 +21,8 @@
     "Software Engineer": 10
   },
   "known_traps_excluded": [
-    "CAND_0000339",
-    "CAND_0004989"
+    "CAND_0004989",
+    "CAND_0000339"
   ],
   "honeypot_flags_in_shortlist": 0,
   "score_histogram": {

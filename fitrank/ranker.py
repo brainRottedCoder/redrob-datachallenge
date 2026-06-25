@@ -12,7 +12,7 @@ from fitrank.coherence import compute_coherence
 from fitrank.config_loader import load_weights as _load_weights
 from fitrank.models import Candidate, CandidateScore, RoleProfile
 from fitrank.penalties import compute_penalties
-from fitrank.signals import compute_platform_trust
+from fitrank.signals import compute_platform_trust, load_normalization_constants
 from fitrank.title_gate import classify_title, title_jd_match
 
 
@@ -36,13 +36,15 @@ def score_candidate(
     candidate: Candidate,
     role_profile: RoleProfile,
     weights: dict | None = None,
+    norms: dict[str, float] | None = None,
 ) -> tuple[ComponentScores, CandidateScore]:
     weights = weights or load_weights()
+    norms = norms or load_normalization_constants()
     career = analyze_career(candidate)
     title_domain = classify_title(candidate.profile.current_title)
     coherence = compute_coherence(candidate, career, title_domain)
     penalties = compute_penalties(candidate, career, coherence, role_profile, weights)
-    platform = compute_platform_trust(candidate, role_profile, weights=weights)
+    platform = compute_platform_trust(candidate, role_profile, weights=weights, norms=norms)
 
     jd_parts = weights.get("jd_fit_components", {})
     title_match = title_jd_match(candidate.profile.current_title, role_profile)
@@ -101,11 +103,14 @@ def rank_candidates(
     candidates,
     role_profile: RoleProfile,
     weights: dict | None = None,
+    norms: dict[str, float] | None = None,
     top_n: int = 100,
 ) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
+    weights = weights or load_weights()
+    norms = norms or load_normalization_constants()
     heap: list[tuple[tuple[float, str], Candidate, ComponentScores, CandidateScore]] = []
     for candidate in candidates:
-        components, candidate_score = score_candidate(candidate, role_profile, weights)
+        components, candidate_score = score_candidate(candidate, role_profile, weights, norms)
         key = (candidate_score.final_score, candidate.candidate_id)
         if len(heap) < top_n:
             heapq.heappush(heap, (key, candidate, components, candidate_score))

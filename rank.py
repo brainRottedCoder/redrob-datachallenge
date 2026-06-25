@@ -37,7 +37,7 @@ def main() -> int:
 
     weights = load_weights(args.weights)
     ranked = rank_candidates(
-        load_candidates(args.candidates),
+        load_candidates(args.candidates, validate=False),
         role_profile,
         weights=weights,
         top_n=args.top_n + 10,
