@@ -51,13 +51,20 @@ def main() -> int:
 
     audit = {
         "runtime_seconds": round(time.time() - start, 2),
-        "title_distribution": Counter(item[0].profile.current_title for item in ranked),
-        "trap_exclusion": list(TRAP_IDS),
+        "title_distribution": dict(Counter(item[0].profile.current_title for item in ranked)),
+        "known_traps_excluded": list(TRAP_IDS),
+        "honeypot_flags_in_shortlist": sum(1 for _, comp, _ in ranked if comp.is_honeypot),
+        "score_histogram": {
+            "min": min(item[2].final_score for item in ranked),
+            "max": max(item[2].final_score for item in ranked),
+            "mean": round(sum(item[2].final_score for item in ranked) / len(ranked), 4),
+        },
         "top_5": [
             {
                 "candidate_id": item[0].candidate_id,
                 "title": item[0].profile.current_title,
                 "final_score": item[2].final_score,
+                "reasoning": build_reasoning(item[0], item[1]),
             }
             for item in ranked[:5]
         ],

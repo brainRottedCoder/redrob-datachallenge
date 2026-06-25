@@ -26,7 +26,12 @@ def compute_penalties(
     career_evidence: CareerEvidence,
     coherence: CoherenceScore,
     role_profile: RoleProfile,
+    weights: dict | None = None,
 ) -> PenaltyScore:
+    from fitrank.config_loader import load_weights
+
+    weights = weights or load_weights()
+    penalty_weights = weights.get("penalty_weights", {})
     skill_trust = analyze_skills(candidate.skills, role_profile)
     title_domain = classify_title(candidate.profile.current_title)
 
@@ -42,11 +47,11 @@ def compute_penalties(
     )
 
     total = (
-        0.25 * template_mismatch
-        + 0.20 * skill_trust.skill_inflation_risk
-        + 0.15 * shallow
-        + 0.10 * expert_zero
-        + 0.15 * non_ml_high
+        penalty_weights.get("template_mismatch", 0.25) * template_mismatch
+        + penalty_weights.get("skill_inflation", 0.20) * skill_trust.skill_inflation_risk
+        + penalty_weights.get("shallow_boilerplate", 0.15) * shallow
+        + penalty_weights.get("expert_zero_endorse", 0.10) * expert_zero
+        + penalty_weights.get("non_ml_title_high_skill", 0.15) * non_ml_high
     )
     if coherence.is_honeypot:
         total = min(0.70, total + 0.25)

@@ -5,14 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+import heapq
 
 from fitrank.career_analyzer import analyze_career
 from fitrank.coherence import compute_coherence
+from fitrank.config_loader import load_weights as _load_weights
 from fitrank.models import Candidate, CandidateScore, RoleProfile
 from fitrank.penalties import compute_penalties
-from fitrank.signals import PlatformTrustScore, compute_platform_trust
-from fitrank.skill_trust import extract_ml_skills
+from fitrank.signals import compute_platform_trust
 from fitrank.title_gate import classify_title, title_jd_match
 
 
@@ -29,7 +29,7 @@ class ComponentScores:
 
 
 def load_weights(path: str | Path = "config/weights.yaml") -> dict:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return _load_weights(path)
 
 
 def score_candidate(
@@ -41,23 +41,25 @@ def score_candidate(
     career = analyze_career(candidate)
     title_domain = classify_title(candidate.profile.current_title)
     coherence = compute_coherence(candidate, career, title_domain)
-    penalties = compute_penalties(candidate, career, coherence, role_profile)
-    platform = compute_platform_trust(candidate, role_profile)
+    penalties = compute_penalties(candidate, career, coherence, role_profile, weights)
+    platform = compute_platform_trust(candidate, role_profile, weights=weights)
 
+    jd_parts = weights.get("jd_fit_components", {})
     title_match = title_jd_match(candidate.profile.current_title, role_profile)
     capability_match = _capability_match(candidate, role_profile)
     education = _education_relevance(candidate)
     jd_fit = (
-        0.40 * title_match
-        + 0.30 * capability_match
-        + 0.20 * platform.assessment_jd_overlap
-        + 0.10 * education
+        jd_parts.get("title_jd_match", 0.40) * title_match
+        + jd_parts.get("capability_match", 0.30) * capability_match
+        + jd_parts.get("assessment_jd_overlap", 0.20) * platform.assessment_jd_overlap
+        + jd_parts.get("education_relevance", 0.10) * education
     )
 
+    career_parts = weights.get("career_evidence_components", {})
     career_score = (
-        0.50 * career.all_career_ml_depth_norm
-        + 0.35 * career.current_role_ml_depth_norm
-        + 0.15 * career.career_momentum_norm
+        career_parts.get("all_career_ml_depth", 0.50) * career.all_career_ml_depth_norm
+        + career_parts.get("current_role_ml_depth", 0.35) * career.current_role_ml_depth_norm
+        + career_parts.get("career_momentum", 0.15) * career.career_momentum_norm
     )
 
     raw = (
@@ -101,13 +103,17 @@ def rank_candidates(
     weights: dict | None = None,
     top_n: int = 100,
 ) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
-    scored: list[tuple[Candidate, ComponentScores, CandidateScore]] = []
+    heap: list[tuple[tuple[float, str], Candidate, ComponentScores, CandidateScore]] = []
     for candidate in candidates:
         components, candidate_score = score_candidate(candidate, role_profile, weights)
-        scored.append((candidate, components, candidate_score))
+        key = (candidate_score.final_score, candidate.candidate_id)
+        if len(heap) < top_n:
+            heapq.heappush(heap, (key, candidate, components, candidate_score))
+        elif key > heap[0][0]:
+            heapq.heapreplace(heap, (key, candidate, components, candidate_score))
 
-    scored.sort(key=lambda item: (-item[2].final_score, item[0].candidate_id))
-    return scored[:top_n]
+    ranked = sorted(heap, key=lambda item: (-item[0][0], item[0][1]))
+    return [(item[1], item[2], item[3]) for item in ranked]
 
 
 def _capability_match(candidate: Candidate, role_profile: RoleProfile) -> float:

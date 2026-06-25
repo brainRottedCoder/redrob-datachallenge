@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 
 from fitrank.models import Candidate, CareerEntry
 
@@ -146,13 +147,22 @@ def score_career_momentum(career_history: list[CareerEntry]) -> float:
 
 
 def classify_template_domain(description: str) -> str:
-    prefix = description.lower().strip()[:60]
+    return _classify_template_domain_cached(description.lower().strip()[:80])
+
+
+@lru_cache(maxsize=4096)
+def _classify_template_domain_cached(prefix: str) -> str:
     for template_prefix, domain in TEMPLATE_PREFIXES:
         if prefix.startswith(template_prefix):
             return domain
-    if _count_deep_patterns(description) >= 3:
+    if _count_deep_patterns_cached(prefix) >= 3:
         return "ml_work"
     return "unknown"
+
+
+@lru_cache(maxsize=8192)
+def _count_deep_patterns_cached(text: str) -> int:
+    return sum(1 for pattern in DEEP_ML_PATTERNS if pattern.search(text or ""))
 
 
 def get_current_template_domain(candidate: Candidate) -> str:
@@ -170,7 +180,7 @@ def count_shallow_ai_boilerplate(*texts: str) -> int:
 
 
 def _count_deep_patterns(text: str) -> int:
-    return sum(1 for pattern in DEEP_ML_PATTERNS if pattern.search(text or ""))
+    return _count_deep_patterns_cached(text or "")
 
 
 def _normalize_momentum(momentum: float) -> float:

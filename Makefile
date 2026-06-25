@@ -1,4 +1,4 @@
-.PHONY: install test run validate
+.PHONY: install test run validate deck
 
 install:
 	pip install -r requirements.txt
@@ -11,3 +11,6 @@ run:
 
 validate:
 	python validate_submission.py outputs/submission.csv
+
+deck:
+	python scripts/generate_deck_pdf.py

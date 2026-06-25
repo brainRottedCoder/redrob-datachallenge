@@ -14,7 +14,10 @@ python validate_submission.py outputs/submission.csv
 
 ```bash
 pytest tests/ -v
+pytest tests/test_prd_compliance.py -v   # deliverables + NFR checks
 ```
+
+See `DELIVERABLES_CHECKLIST.md` for full PRD Section 12 status.
 
 ## Demo
 

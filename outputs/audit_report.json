@@ -1,54 +1,65 @@
 {
-  "runtime_seconds": 333.51,
+  "runtime_seconds": 218.59,
   "title_distribution": {
-    "AI Engineer": 10,
     "Senior NLP Engineer": 4,
-    "Senior Machine Learning Engineer": 3,
-    "Applied ML Engineer": 4,
-    "Senior Data Scientist": 6,
-    "Machine Learning Engineer": 9,
-    "Search Engineer": 10,
-    "Recommendation Systems Engineer": 8,
+    "AI Engineer": 9,
+    "Applied ML Engineer": 2,
+    "Machine Learning Engineer": 5,
+    "Senior Data Scientist": 3,
+    "Search Engineer": 4,
+    "Recommendation Systems Engineer": 6,
     "NLP Engineer": 2,
     "Senior AI Engineer": 2,
-    "Analytics Engineer": 5,
-    "Backend Engineer": 6,
+    "Senior Machine Learning Engineer": 3,
+    "Analytics Engineer": 12,
     "Senior Applied Scientist": 1,
-    "Senior Software Engineer": 6,
+    "Backend Engineer": 8,
     "Data Engineer": 8,
+    "Senior Software Engineer": 12,
+    "Senior Data Engineer": 8,
     "Lead AI Engineer": 1,
-    "Software Engineer": 9,
-    "Senior Data Engineer": 6
+    "Software Engineer": 10
   },
-  "trap_exclusion": [
+  "known_traps_excluded": [
     "CAND_0000339",
     "CAND_0004989"
   ],
+  "honeypot_flags_in_shortlist": 0,
+  "score_histogram": {
+    "min": 0.2382,
+    "max": 0.6517,
+    "mean": 0.3263
+  },
   "top_5": [
-    {
-      "candidate_id": "CAND_0055992",
-      "title": "AI Engineer",
-      "final_score": 0.6706
-    },
     {
       "candidate_id": "CAND_0046064",
       "title": "Senior NLP Engineer",
-      "final_score": 0.6412
-    },
-    {
-      "candidate_id": "CAND_0015578",
-      "title": "AI Engineer",
-      "final_score": 0.6298
-    },
-    {
-      "candidate_id": "CAND_0055905",
-      "title": "Senior Machine Learning Engineer",
-      "final_score": 0.6096
+      "final_score": 0.6517,
+      "reasoning": "Senior NLP Engineer | JD=0.25 Career=0.55 Coh=1.00 Trust=0.75 | strong ML career evidence | low penalties (0.00)"
     },
     {
       "candidate_id": "CAND_0062247",
       "title": "AI Engineer",
-      "final_score": 0.5974
+      "final_score": 0.5929,
+      "reasoning": "AI Engineer | JD=0.63 Career=0.32 Coh=0.88 Trust=0.42 | limited ML career evidence | low penalties (0.00)"
+    },
+    {
+      "candidate_id": "CAND_0044222",
+      "title": "AI Engineer",
+      "final_score": 0.589,
+      "reasoning": "AI Engineer | JD=0.64 Career=0.28 Coh=0.79 Trust=0.71 | limited ML career evidence | low penalties (0.00)"
+    },
+    {
+      "candidate_id": "CAND_0005260",
+      "title": "Senior NLP Engineer",
+      "final_score": 0.5811,
+      "reasoning": "Senior NLP Engineer | JD=0.22 Career=0.56 Coh=0.91 Trust=0.67 | strong ML career evidence | low penalties (0.00)"
+    },
+    {
+      "candidate_id": "CAND_0069905",
+      "title": "Applied ML Engineer",
+      "final_score": 0.5802,
+      "reasoning": "Applied ML Engineer | JD=0.29 Career=0.43 Coh=0.82 Trust=0.74 | limited ML career evidence | low penalties (0.00)"
     }
   ]
 }

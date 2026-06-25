@@ -39,7 +39,12 @@ def compute_platform_trust(
     candidate: Candidate,
     role_profile: RoleProfile,
     norms: dict[str, float] | None = None,
+    weights: dict | None = None,
 ) -> PlatformTrustScore:
+    from fitrank.config_loader import load_weights
+
+    weights = weights or load_weights()
+    trust_parts = weights.get("platform_trust_components", {})
     norms = norms or load_normalization_constants()
     signals = candidate.redrob_signals
 
@@ -59,17 +64,21 @@ def compute_platform_trust(
         + int(signals.verified_phone)
         + int(signals.linkedin_connected)
     ) / 3.0
+    work_mode_match = _work_mode_match(
+        signals.preferred_work_mode,
+        role_profile.preferred_work_mode,
+    )
     availability = (
         0.40 * float(signals.open_to_work_flag)
         + 0.30 * (1.0 - min(signals.notice_period_days, 150) / 150.0)
-        + 0.30 * float(signals.willing_to_relocate)
+        + 0.30 * (0.5 * float(signals.willing_to_relocate) + 0.5 * work_mode_match)
     )
 
     platform_trust = (
-        0.35 * assessment_avg
-        + 0.20 * github
-        + 0.30 * engagement
-        + 0.15 * verification
+        trust_parts.get("assessment_avg", 0.35) * assessment_avg
+        + trust_parts.get("github", 0.20) * github
+        + trust_parts.get("engagement", 0.30) * engagement
+        + trust_parts.get("verification", 0.15) * verification
     )
 
     return PlatformTrustScore(
@@ -110,3 +119,15 @@ def _engagement_composite(signals, norms: dict[str, float]) -> float:
         + 0.25 * interview
         + 0.15 * offer
     )
+
+
+def _work_mode_match(candidate_mode: str, jd_mode: str) -> float:
+    if jd_mode == "flexible" or not jd_mode:
+        return 1.0
+    if candidate_mode == jd_mode:
+        return 1.0
+    if jd_mode == "hybrid" and candidate_mode in {"remote", "onsite", "flexible"}:
+        return 0.7
+    if jd_mode == "remote" and candidate_mode == "flexible":
+        return 0.8
+    return 0.3

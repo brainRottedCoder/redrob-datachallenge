@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from enum import Enum
+from functools import lru_cache
 
 from fitrank.models import RoleProfile
 
@@ -92,7 +93,11 @@ class TitleGateResult:
 
 def classify_title(title: str) -> TitleDomain:
     """Classify a candidate current title into a domain bucket."""
-    normalized = (title or "").strip()
+    return _classify_title_cached((title or "").strip())
+
+
+@lru_cache(maxsize=256)
+def _classify_title_cached(normalized: str) -> TitleDomain:
     if not normalized:
         return TitleDomain.NON_TECH
 

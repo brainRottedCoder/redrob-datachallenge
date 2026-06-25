@@ -110,6 +110,35 @@ def test_t5_7_positive_momentum():
     assert score_career_momentum(history) > 0
 
 
+def test_t5_3_current_role_focus():
+    from fitrank.models import Candidate, CareerEntry, Profile, RedrobSignals, SalaryRange
+
+    candidate = Candidate(
+        "CAND_0000101",
+        Profile("A", "h", "s", "L", "IN", 5.0, "ML Engineer", "Co", "201-500", "Tech"),
+        [
+            CareerEntry("Old", "ML Eng", "2018-01-01", "2023-01-01", 60, False, "Tech", "201-500",
+                        "fine-tuned LLaMA using LoRA and PyTorch with FAISS retrieval"),
+            CareerEntry("Now", "Manager", "2023-01-01", None, 24, True, "Tech", "201-500",
+                        "Customer support team lead at a SaaS product."),
+        ],
+        [],
+        [],
+        RedrobSignals(
+            80, "2024-01-01", "2024-06-01", True, 1, 1, 0.5, 1.0, {}, 1, 1, 30,
+            SalaryRange(10, 20), "remote", True, -1, 1, 1, 0.5, -1, True, False, False,
+        ),
+    )
+    evidence = analyze_career(candidate)
+    assert evidence.current_role_ml_depth == 0
+    assert evidence.all_career_ml_depth > 0
+
+
+def test_t5_6_ml_template():
+    desc = "Fine-tuned LLaMA-2-7B and Mistral-7B variants using LoRA and QLoRA"
+    assert classify_template_domain(desc) == "ml_work"
+
+
 def test_t5_10_shallow_boilerplate_count():
     candidate = Candidate("CAND_0000003", _profile(), [_entry()], [], [], _signals())
     assert analyze_career(candidate).shallow_ai_count >= 1
