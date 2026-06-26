@@ -1,6 +1,6 @@
 # Redrob Datachallenge — FitRank
 
-Hackathon project for the **Redrob Intelligent Candidate Discovery & Ranking Challenge**.
+Hackathon project for the **Redrob Intelligent Candidate Discovery & Ranking Challenge** — FitRank candidate ranking system.
 
 ## Repository contents
 
