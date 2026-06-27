@@ -72,7 +72,7 @@ SOFTWARE_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\bengineer\b", re.I),
 ]
 
-NON_TECH_KEYWORDS: list[str] = [
+NON_TECH_KEYWORDS: frozenset[str] = frozenset([
     "hr",
     "human resources",
     "accountant",
@@ -90,7 +90,7 @@ NON_TECH_KEYWORDS: list[str] = [
     "lawyer",
     "nurse",
     "teacher",
-]
+])
 
 
 @dataclass(frozen=True)

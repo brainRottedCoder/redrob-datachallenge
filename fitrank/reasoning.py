@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from fitrank.career_analyzer import DEEP_ML_PATTERNS
 from fitrank.constants import (
     CONSULTING_FIRMS,
     CV_SPEECH_ROBOTICS_TITLES,
@@ -76,16 +75,6 @@ def _describe_location(candidate: Candidate) -> str | None:
     return None
 
 
-def _estimate_ml_tenure(candidate: Candidate) -> float:
-    """Estimate years of ML-relevant experience from career history."""
-    total_ml_months = 0.0
-    for entry in candidate.career_history:
-        text = (entry.title + " " + entry.description).lower()
-        if any(pattern.search(text) for pattern in DEEP_ML_PATTERNS):
-            total_ml_months += entry.duration_months
-    return round(total_ml_months / 12.0, 1)
-
-
 def _describe_penalty_reasons(components: ComponentScores) -> list[str]:
     """Return explicit, human-readable penalty reasons."""
     p = components.penalties_detail
@@ -114,14 +103,24 @@ def _describe_penalty_reasons(components: ComponentScores) -> list[str]:
         reasons.append("experience gap")
     if p.job_hopper >= 0.5:
         reasons.append("job hopper")
+    if p.seniority_mismatch >= 0.5:
+        reasons.append("seniority gap")
     return reasons
 
 
 def build_reasoning(
     candidate: Candidate,
     components: ComponentScores,
+    ml_tenure: float | None = None,
 ) -> str:
-    """Build a concise, candidate-specific reasoning string."""
+    """Build a concise, candidate-specific reasoning string.
+
+    Args:
+        candidate: The candidate profile.
+        components: Scored component breakdown from the ranker.
+        ml_tenure: Pre-computed ML tenure in years (from CareerEvidence).
+                   If None, falls back to 0.0.
+    """
     title = candidate.profile.current_title
     exp = candidate.profile.years_of_experience
 
@@ -146,10 +145,10 @@ def build_reasoning(
     else:
         fragments.append("no GH")
 
-    ml_tenure = _estimate_ml_tenure(candidate)
+    ml_tenure_val = ml_tenure if ml_tenure is not None else 0.0
     avail = _describe_availability(candidate)
     location = _describe_location(candidate)
-    exp_avail = f"{exp:.1f}yrs total/{ml_tenure:.1f}yrs ML"
+    exp_avail = f"{exp:.1f}yrs total/{ml_tenure_val:.1f}yrs ML"
     if location:
         exp_avail += f" {location}"
     if avail:
@@ -166,6 +165,8 @@ def build_reasoning(
         f"JD={components.jd_fit:.2f} Career={components.career_evidence:.2f} "
         f"Coh={components.coherence:.2f} Trust={components.platform_trust:.2f}"
     )
+    if components.is_honeypot:
+        scores += " [HONEYPOT ×0.25]"
 
     evidence_line = "; ".join(fragments)
     return f"{title} | {scores} | {evidence_line}"

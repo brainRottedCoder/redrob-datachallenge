@@ -30,6 +30,7 @@ class PenaltyScore:
     salary_inverted: float
     experience_gap: float
     job_hopper: float
+    seniority_mismatch: float
     total_penalty: float
 
 
@@ -109,6 +110,24 @@ def _job_hopper_penalty(candidate: Candidate) -> float:
     return 0.0
 
 
+def _seniority_mismatch_penalty(
+    candidate: Candidate,
+    career_evidence,
+    role_profile: RoleProfile,
+) -> float:
+    """Soft penalty when JD expects senior experience but candidate lacks ML tenure.
+
+    Only fires when role_profile.seniority is 'senior' AND the candidate's computed
+    ML-specific experience is below the threshold, not just total years of experience.
+    """
+    if role_profile.seniority != "senior":
+        return 0.0
+    ml_years = getattr(career_evidence, "years_of_ml_experience", 0.0)
+    if ml_years < 3.0:
+        return 1.0
+    return 0.0
+
+
 def compute_penalties(
     candidate: Candidate,
     career_evidence: CareerEvidence,
@@ -123,7 +142,10 @@ def compute_penalties(
     skill_trust = analyze_skills(candidate.skills, role_profile)
     title_domain = classify_title(candidate.profile.current_title)
 
-    template_mismatch = 1.0 if coherence.template_coherence == 0.0 else 0.0
+    template_mismatch = 1.0 if (
+        coherence.template_coherence < 0.1
+        and career_evidence.template_domain != "unknown"
+    ) else 0.0
     shallow = min(career_evidence.shallow_ai_count / 3.0, 1.0)
     expert_zero = 1.0 if any(
         skill.proficiency == "expert" and skill.endorsements == 0 for skill in candidate.skills
@@ -140,19 +162,21 @@ def compute_penalties(
     salary_inverted = _salary_inverted_penalty(candidate)
     experience_gap = _experience_gap_penalty(candidate, role_profile)
     job_hopper = _job_hopper_penalty(candidate)
+    seniority_mismatch = _seniority_mismatch_penalty(candidate, career_evidence, role_profile)
 
     total = (
-        penalty_weights.get("template_mismatch", 0.25) * template_mismatch
-        + penalty_weights.get("skill_inflation", 0.20) * skill_trust.skill_inflation_risk
-        + penalty_weights.get("shallow_boilerplate", 0.15) * shallow
-        + penalty_weights.get("expert_zero_endorse", 0.10) * expert_zero
-        + penalty_weights.get("non_ml_title_high_skill", 0.15) * non_ml_high
-        + penalty_weights.get("consulting_only", 0.10) * consulting_only
-        + penalty_weights.get("pure_research", 0.10) * pure_research
-        + penalty_weights.get("cv_without_nlp", 0.10) * cv_without_nlp
-        + penalty_weights.get("salary_inverted", 0.10) * salary_inverted
-        + penalty_weights.get("experience_gap", 0.08) * experience_gap
-        + penalty_weights.get("job_hopper", 0.05) * job_hopper
+        penalty_weights.get("template_mismatch", 0.20) * template_mismatch
+        + penalty_weights.get("skill_inflation", 0.15) * skill_trust.skill_inflation_risk
+        + penalty_weights.get("shallow_boilerplate", 0.10) * shallow
+        + penalty_weights.get("expert_zero_endorse", 0.08) * expert_zero
+        + penalty_weights.get("non_ml_title_high_skill", 0.10) * non_ml_high
+        + penalty_weights.get("consulting_only", 0.07) * consulting_only
+        + penalty_weights.get("pure_research", 0.07) * pure_research
+        + penalty_weights.get("cv_without_nlp", 0.07) * cv_without_nlp
+        + penalty_weights.get("salary_inverted", 0.07) * salary_inverted
+        + penalty_weights.get("experience_gap", 0.05) * experience_gap
+        + penalty_weights.get("job_hopper", 0.04) * job_hopper
+        + penalty_weights.get("seniority_mismatch", 0.04) * seniority_mismatch
     )
     if coherence.is_honeypot:
         total = min(0.70, total + 0.25)
@@ -169,5 +193,6 @@ def compute_penalties(
         salary_inverted=salary_inverted,
         experience_gap=experience_gap,
         job_hopper=job_hopper,
+        seniority_mismatch=seniority_mismatch,
         total_penalty=min(total, 0.70),
     )

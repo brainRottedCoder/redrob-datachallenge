@@ -39,3 +39,4 @@ penalty_weights:
   salary_inverted: 0.07
   experience_gap: 0.05
   job_hopper: 0.04
+  seniority_mismatch: 0.04

@@ -44,14 +44,18 @@ See `PRD_Redrob_FitRank.md` for the full 10-phase pipeline: JD parsing, title ga
 
 ## Key improvements
 
-- Profile-coherence scoring with honeypot detection
+- Profile-coherence scoring with honeypot detection (now includes AI_ADJACENT title-chaser profiles)
 - Trusted skill chain (duration + endorsements)
 - JD-conditioned semantic capability matching
-- Penalties for consulting-only careers, pure research, CV/speech/robotics without NLP/IR, salary inversion, skill inflation, experience gaps, and job hopping
+- Penalties for consulting-only careers, pure research, CV/speech/robotics without NLP/IR, salary inversion, skill inflation, experience gaps, job hopping, and seniority mismatch
 - Location, recency, recruiter-responsiveness, and tiered certification signals
-- Candidate-specific, non-templated reasoning strings with ML tenure estimates and explicit penalty flags
+- Candidate-specific, non-templated reasoning strings with ML tenure estimates, explicit penalty flags, and honeypot labels
 - Actual model scores reported in the `score` column
 - Shared constants module and refined component/penalty weights
+- Career-depth scaling with per-entry cap and `tanh` momentum normalization for better discrimination
+- Recency-weighted skill-career alignment and skill-count damping
+- Deduplicated open-source corpus and assessment-overlap denominator cap
+- Optional multi-JD score calibration (`--calibrate`) and an overhauled Streamlit demo app
 
 ## Reproduce submission
 

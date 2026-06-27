@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -154,6 +155,15 @@ SHALLOW_AI_PATTERNS: list[re.Pattern[str]] = [
         r"side project.*(rag|langchain)",
         r"(rag|langchain).*side project",
         r"exploring how llm",
+        r"just starting to explore (ai|ml)",
+        r"hobby project.*(ai|ml|gpt)",
+        r"(ai|ml).*hobby project",
+        r"interested in (ai|ml|llm|nlp)",
+        r"learning (pytorch|tensorflow|machine learning|deep learning)",
+        r"followed.*coursera.*(ml|ai|data science)",
+        r"completed.*udemy.*(ml|ai|deep learning)",
+        r"watched.*(andrew ng|fast\.ai|deeplearning\.ai)",
+        r"personal project.*(chatgpt|openai api)",
     ]
 ]
 
@@ -191,7 +201,7 @@ TEMPLATE_PREFIXES: list[tuple[str, str]] = [
     ("open-source contributions in", "ml_work"),
 ]
 
-ML_DEPTH_MAX = 15.0
+ML_DEPTH_MAX = 25.0
 
 
 @dataclass
@@ -201,6 +211,7 @@ class CareerEvidence:
     career_momentum: float
     template_domain: str
     shallow_ai_count: int
+    years_of_ml_experience: float = 0.0
     all_career_ml_depth_norm: float = 0.0
     current_role_ml_depth_norm: float = 0.0
     career_momentum_norm: float = 0.0
@@ -215,6 +226,7 @@ def analyze_career(candidate: Candidate) -> CareerEvidence:
         candidate.profile.summary,
         *[entry.description for entry in candidate.career_history],
     )
+    ml_years = _years_of_ml_experience(candidate.career_history)
 
     return CareerEvidence(
         all_career_ml_depth=all_depth,
@@ -222,6 +234,7 @@ def analyze_career(candidate: Candidate) -> CareerEvidence:
         career_momentum=momentum,
         template_domain=template_domain,
         shallow_ai_count=shallow,
+        years_of_ml_experience=ml_years,
         all_career_ml_depth_norm=min(all_depth / ML_DEPTH_MAX, 1.0),
         current_role_ml_depth_norm=min(current_depth / ML_DEPTH_MAX, 1.0),
         career_momentum_norm=_normalize_momentum(momentum),
@@ -229,7 +242,8 @@ def analyze_career(candidate: Candidate) -> CareerEvidence:
 
 
 def score_career_ml_depth(career_history: list[CareerEntry]) -> int:
-    return sum(_count_deep_patterns(entry.description) for entry in career_history)
+    # Cap per-entry depth so a single hyper-detailed role cannot dominate the career score.
+    return sum(min(_count_deep_patterns(entry.description), 12) for entry in career_history)
 
 
 def score_current_role_depth(career_history: list[CareerEntry]) -> int:
@@ -242,8 +256,13 @@ def score_current_role_depth(career_history: list[CareerEntry]) -> int:
 def score_career_momentum(career_history: list[CareerEntry]) -> float:
     if len(career_history) < 2:
         return 0.0
-    values = [COMPANY_SIZE_ORDINAL.get(entry.company_size, 0) for entry in career_history]
-    if not values or max(values) == min(values):
+    # Only include entries with a known company size; unknown sizes add noise.
+    values = [
+        COMPANY_SIZE_ORDINAL[entry.company_size]
+        for entry in career_history
+        if entry.company_size in COMPANY_SIZE_ORDINAL
+    ]
+    if len(values) < 2 or max(values) == min(values):
         return 0.0
     n = len(values)
     x_mean = (n - 1) / 2
@@ -291,5 +310,16 @@ def _count_deep_patterns(text: str) -> int:
     return _count_deep_patterns_cached(text or "")
 
 
+def _years_of_ml_experience(career_history: list[CareerEntry]) -> float:
+    """Sum duration of roles whose title or description contains ML patterns."""
+    total_months = 0
+    for entry in career_history:
+        text = (entry.title + " " + entry.description).lower()
+        if _count_deep_patterns_cached(text) >= 1:
+            total_months += entry.duration_months
+    return round(total_months / 12.0, 1)
+
+
 def _normalize_momentum(momentum: float) -> float:
-    return max(0.0, min(1.0, (momentum + 2.0) / 4.0))
+    # tanh maps (-inf, +inf) -> (-1, 1). Scale by /2 to keep typical slopes in range.
+    return (math.tanh(momentum / 2.0) + 1.0) / 2.0

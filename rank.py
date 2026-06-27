@@ -12,6 +12,7 @@ import time
 from collections import Counter
 from pathlib import Path
 
+from fitrank.calibrator import calibrate_scores
 from fitrank.jd_parser import parse_jd, save_role_profile
 from fitrank.loader import load_candidates
 from fitrank.ranker import load_weights, rank_candidates
@@ -25,6 +26,7 @@ def main() -> int:
     parser.add_argument("--out", default="outputs/submission.csv")
     parser.add_argument("--weights", default="config/weights.yaml")
     parser.add_argument("--top-n", type=int, default=100)
+    parser.add_argument("--calibrate", action="store_true", help="Calibrate scores for multi-JD analysis (do NOT use for challenge submission).")
     args = parser.parse_args()
 
     start = time.time()
@@ -40,6 +42,9 @@ def main() -> int:
         top_n=args.top_n,
     )
     ranked = ranked[: args.top_n]
+
+    if args.calibrate:
+        ranked = calibrate_scores(ranked)
 
     output_path = Path(args.out)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,12 +65,12 @@ def main() -> int:
                 "candidate_id": item[0].candidate_id,
                 "title": item[0].profile.current_title,
                 "final_score": item[2].final_score,
-                "reasoning": build_reasoning(item[0], item[1]),
+                "reasoning": build_reasoning(item[0], item[1], ml_tenure=item[1].ml_tenure_years),
             }
             for item in ranked[:5]
         ],
     }
-    audit_path = Path("outputs/audit_report.json")
+    audit_path = Path(args.out).parent / "audit_report.json"
     audit_path.write_text(
         json.dumps(audit, indent=2, default=lambda o: dict(o)),
         encoding="utf-8",
@@ -98,7 +103,7 @@ def _write_submission_csv(path: Path, ranked) -> None:
                     candidate.candidate_id,
                     rank,
                     round(score_obj.final_score, 4),
-                    build_reasoning(candidate, components),
+                    build_reasoning(candidate, components, ml_tenure=components.ml_tenure_years),
                 ]
             )
 

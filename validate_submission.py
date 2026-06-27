@@ -116,6 +116,14 @@ def validate_submission(csv_path):
         if rank is not None and score is not None and cid:
             by_rank.append((rank, score, cid))
 
+        reasoning = row["reasoning"].strip()
+        if not reasoning:
+            errors.append(f"Row {row_num}: reasoning must not be empty.")
+        elif len(reasoning) < 20:
+            errors.append(f"Row {row_num}: reasoning too short (< 20 chars).")
+        elif not re.search(r"JD=\d+\.\d+", reasoning):
+            errors.append(f"Row {row_num}: reasoning missing 'JD=X.XX' score field.")
+
     missing = set(range(1, 101)) - seen_ranks
     if missing:
         errors.append(

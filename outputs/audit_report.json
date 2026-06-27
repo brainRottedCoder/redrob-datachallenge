@@ -1,63 +1,63 @@
 {
-  "runtime_seconds": 189.6,
+  "runtime_seconds": 233.21,
   "title_distribution": {
     "Senior AI Engineer": 2,
-    "AI Engineer": 14,
-    "Lead AI Engineer": 1,
-    "Senior Machine Learning Engineer": 4,
+    "AI Engineer": 18,
+    "Senior Machine Learning Engineer": 5,
+    "Lead AI Engineer": 2,
     "Senior Applied Scientist": 2,
     "Senior NLP Engineer": 6,
+    "AI Specialist": 14,
     "Staff Machine Learning Engineer": 4,
-    "AI Specialist": 13,
+    "Senior Data Scientist": 4,
     "Applied ML Engineer": 7,
-    "Senior Data Scientist": 3,
-    "Machine Learning Engineer": 4,
+    "Machine Learning Engineer": 3,
     "Junior ML Engineer": 4,
-    "NLP Engineer": 3,
-    "Data Scientist": 7,
+    "NLP Engineer": 5,
+    "Data Scientist": 4,
     "ML Engineer": 9,
-    "AI Research Engineer": 3,
+    "Computer Vision Engineer": 7,
     "Search Engineer": 1,
-    "Computer Vision Engineer": 11,
-    "Recommendation Systems Engineer": 2
+    "Recommendation Systems Engineer": 1,
+    "AI Research Engineer": 2
   },
   "known_traps_excluded": [],
   "honeypot_flags_in_shortlist": 0,
   "score_histogram": {
-    "min": 0.5457,
-    "max": 0.7889,
-    "mean": 0.6024
+    "min": 0.5001,
+    "max": 0.7419,
+    "mean": 0.5541
   },
   "top_5": [
     {
       "candidate_id": "CAND_0071974",
       "title": "Senior AI Engineer",
-      "final_score": 0.7889,
-      "reasoning": "Senior AI Engineer | JD=0.75 Career=0.79 Coh=0.83 Trust=0.85 | current role: embedding,Pinecone,recommendation; assessments LoRA=87, PEFT=86; GH 83; 7.8yrs total/7.7yrs ML India (OTW/45d notice)"
+      "final_score": 0.7419,
+      "reasoning": "Senior AI Engineer | JD=0.85 Career=0.58 Coh=0.79 Trust=0.85 | current role: embedding,Pinecone,recommendation; assessments LoRA=87, PEFT=86; GH 83; 7.8yrs total/7.7yrs ML India (OTW/45d notice)"
     },
     {
       "candidate_id": "CAND_0055992",
       "title": "AI Engineer",
-      "final_score": 0.7651,
-      "reasoning": "AI Engineer | JD=0.72 Career=0.70 Coh=0.84 Trust=0.81 | current role: RAG,embedding,Pinecone; assessments RAG=87, MLflow=71; GH 65; 16.9yrs total/6.7yrs ML (OTW/60d notice/reloc)"
-    },
-    {
-      "candidate_id": "CAND_0081846",
-      "title": "Lead AI Engineer",
-      "final_score": 0.7463,
-      "reasoning": "Lead AI Engineer | JD=0.69 Career=0.73 Coh=0.80 Trust=0.71 | current role: RAG,embedding,FAISS; assessments LlamaIndex=68; GH 34; 6.7yrs total/6.6yrs ML India (OTW/\u226430d notice/reloc)"
-    },
-    {
-      "candidate_id": "CAND_0079387",
-      "title": "AI Engineer",
-      "final_score": 0.7284,
-      "reasoning": "AI Engineer | JD=0.71 Career=0.64 Coh=0.81 Trust=0.79 | current role: embedding,sentence-transformer,recommendation; assessments Recommendation Systems=84; GH 64; 6.9yrs total/6.8yrs ML India (OTW/\u226430d notice)"
+      "final_score": 0.7022,
+      "reasoning": "AI Engineer | JD=0.78 Career=0.44 Coh=0.83 Trust=0.81 | current role: RAG,embedding,Pinecone; assessments RAG=87, MLflow=71; GH 65; 16.9yrs total/6.7yrs ML (OTW/60d notice/reloc)"
     },
     {
       "candidate_id": "CAND_0018499",
       "title": "Senior Machine Learning Engineer",
-      "final_score": 0.7145,
-      "reasoning": "Senior Machine Learning Engineer | JD=0.34 Career=0.79 Coh=0.86 Trust=0.89 | current role: RAG,embedding,FAISS; assessments Weaviate=72; GH 95; 7.2yrs total/7.2yrs ML Noida (OTW/\u226430d notice/reloc)"
+      "final_score": 0.6915,
+      "reasoning": "Senior Machine Learning Engineer | JD=0.37 Career=0.70 Coh=0.84 Trust=0.89 | current role: RAG,embedding,FAISS; assessments Weaviate=72; GH 95; 7.2yrs total/7.2yrs ML Noida (OTW/\u226430d notice/reloc)"
+    },
+    {
+      "candidate_id": "CAND_0081846",
+      "title": "Lead AI Engineer",
+      "final_score": 0.6902,
+      "reasoning": "Lead AI Engineer | JD=0.73 Career=0.52 Coh=0.80 Trust=0.71 | current role: RAG,embedding,FAISS; assessments LlamaIndex=68; GH 34; 6.7yrs total/6.6yrs ML India (OTW/\u226430d notice/reloc)"
+    },
+    {
+      "candidate_id": "CAND_0039754",
+      "title": "Senior Applied Scientist",
+      "final_score": 0.6821,
+      "reasoning": "Senior Applied Scientist | JD=0.43 Career=0.70 Coh=0.75 Trust=0.85 | current role: embedding,Pinecone,recommendation; assessments Fine-tuning LLMs=96, LlamaIndex=65; GH 78; 16.2yrs total/8.2yrs ML India (OTW/\u226430d notice/reloc)"
     }
   ]
 }

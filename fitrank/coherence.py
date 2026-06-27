@@ -85,8 +85,16 @@ def compute_coherence(
 
     honeypot = (
         score < 0.2
-        and title_domain == TitleDomain.NON_TECH
-        and career_evidence.all_career_ml_depth >= 5
+        and (
+            (
+                title_domain == TitleDomain.NON_TECH
+                and career_evidence.all_career_ml_depth >= 5
+            )
+            or (
+                title_domain == TitleDomain.AI_ADJACENT
+                and career_evidence.all_career_ml_depth_norm < 0.2
+            )
+        )
     )
 
     return CoherenceScore(
@@ -99,7 +107,10 @@ def compute_coherence(
 
 
 def template_coherence_score(template_domain: str, title_domain: TitleDomain) -> float:
-    return DOMAIN_COMPATIBILITY.get((template_domain, title_domain), 0.0)
+    # Return a small non-zero fallback for unknown template domains so that
+    # genuine candidates whose descriptions don't match any template aren't
+    # hard-zeroed in the coherence score.
+    return DOMAIN_COMPATIBILITY.get((template_domain, title_domain), 0.3)
 
 
 def title_domain_confirmation_score(
@@ -122,7 +133,11 @@ def title_domain_confirmation_score(
                 return 0.3
         return 1.0
     if title_domain == TitleDomain.AI_ADJACENT:
-        return 0.5
+        # AI-adjacent titles need real career depth to earn confirmation; otherwise
+        # they are likely title-chasers / keyword-stuffed profiles.
+        if career_evidence.all_career_ml_depth >= 2:
+            return 0.5
+        return 0.2
     if title_domain == TitleDomain.SOFTWARE and career_evidence.all_career_ml_depth >= 2:
         return 0.3
     return 0.0
@@ -132,17 +147,25 @@ def skill_career_alignment(candidate: Candidate) -> float:
     ml_skills = [skill for skill in candidate.skills if _is_ml_skill(skill.name)]
     if not ml_skills:
         return 0.0
-    career_text = " ".join(entry.description for entry in candidate.career_history).lower()
-    matched = 0
+    current_text = " ".join(
+        entry.description for entry in candidate.career_history if entry.is_current
+    ).lower()
+    past_text = " ".join(
+        entry.description for entry in candidate.career_history if not entry.is_current
+    ).lower()
+    score = 0.0
     for skill in ml_skills:
         name = skill.name.lower()
-        if name in career_text:
-            matched += 1
-        else:
-            tokens = [token for token in name.split() if len(token) >= 3]
-            if tokens and all(token in career_text for token in tokens):
-                matched += 1
-    return matched / len(ml_skills)
+        tokens = [token for token in name.split() if len(token) >= 3]
+        in_current = name in current_text or (tokens and all(t in current_text for t in tokens))
+        in_past = name in past_text or (tokens and all(t in past_text for t in tokens))
+        if in_current:
+            score += 2.0
+        elif in_past:
+            score += 1.0
+    # Apply a minimum effective denominator so 1-match candidates max at 0.33.
+    effective_total = max(len(ml_skills), 3) * 2.0
+    return min(score / effective_total, 1.0)
 
 
 def _is_ml_skill(name: str) -> bool:

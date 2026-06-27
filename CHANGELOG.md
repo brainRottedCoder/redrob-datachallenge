@@ -408,3 +408,235 @@ Result: `Submission is valid.` / `Ranked 100 candidates in 189.6s`
  M outputs/audit_report.json
  M outputs/submission.csv
 ```
+
+## 14. Third Round of Improvements
+
+A full test run (83 fast tests) was executed, then additional improvements were identified and implemented.
+
+### 14.1 `fitrank/career_analyzer.py`
+
+- **Added `years_of_ml_experience`** field to `CareerEvidence` — sums `duration_months` of roles whose title or description contains ≥1 deep ML pattern, then converts to years. Previously this computation was duplicated in `reasoning.py` via `_estimate_ml_tenure()`.
+- **Fixed `score_career_momentum()`** to exclude entries with unrecognized `company_size` values before computing the linear regression slope. Previously these mapped to ordinal `0`, introducing systematic downward slope bias for candidates at companies not in the dataset's size enumeration.
+
+### 14.2 `fitrank/ranker.py`
+
+- **Added `ml_tenure_years`** field to `ComponentScores` (sourced from `career.years_of_ml_experience`) so the reasoning module uses the already-computed value instead of re-walking career history.
+
+### 14.3 `fitrank/reasoning.py`
+
+- **Removed `_estimate_ml_tenure()`** — computation is now done once in `career_analyzer.py`.
+- **Updated `build_reasoning()`** to accept an optional `ml_tenure: float` parameter.
+- **Removed unused `DEEP_ML_PATTERNS` import.**
+- **Added `seniority gap`** to the list of explicit penalty flag names.
+
+### 14.4 `fitrank/penalties.py`
+
+- **Added `seniority_mismatch` penalty** — fires when `role_profile.seniority == "senior"` and `career_evidence.years_of_ml_experience < 3.0`. This captures the case where a junior ML engineer ranks well on skills/depth but lacks the sustained ML tenure the Founding Team role demands.
+- **Added `seniority_mismatch`** field to `PenaltyScore` dataclass.
+
+### 14.5 `fitrank/coherence.py`
+
+- **Unknown template domain fallback changed from `0.0` to `0.3`** — genuine candidates whose career descriptions don't match any known template prefix were being hard-zeroed in `template_coherence` (40% of coherence score). A `0.3` fallback avoids disproportionately penalizing non-templated descriptions.
+
+### 14.6 `fitrank/title_gate.py`
+
+- **`NON_TECH_KEYWORDS` converted from `list` to `frozenset`** — O(1) membership testing instead of O(n) linear scan for every title classification call.
+
+### 14.7 `config/weights.yaml`
+
+- Added `seniority_mismatch: 0.04` to `penalty_weights`.
+
+### 14.8 `tests/test_phase11_improvements.py` (**NEW — 30 tests**)
+
+New test file covering all improvements introduced in rounds 2 and 3:
+- Title gate: 9 tests for new ML_AI title patterns (LLM Engineer, GenAI, Data Science Lead, etc.)
+- Career analyzer: 3 tests for `years_of_ml_experience`
+- Career momentum: 2 tests for unknown company size filtering
+- Penalties: 2 tests for `experience_gap`, 3 tests for `job_hopper`
+- Signals: 3 tests for tiered certification bonus, 3 tests for word-boundary assessment overlap
+- Coherence: 2 tests for CV/NLP confirmation split, 2 tests for data_science domain
+- Signals: 1 test for availability score bounds
+
+### 14.9 Testing & Validation After Round 3
+
+```bash
+python -m pytest tests/test_prd_compliance.py tests/test_phase1_setup.py \
+  tests/test_phase3_jd_parser.py tests/test_phase4_title_gate.py \
+  tests/test_phase5_career.py tests/test_phase6_coherence.py \
+  tests/test_phase7_penalties.py tests/test_phase7_skills.py \
+  tests/test_phase8_signals.py tests/test_phase9_ranker.py \
+  tests/test_phase10_integration.py tests/test_phase11_improvements.py -v
+```
+
+| Suite | Count | Result |
+|-------|-------|--------|
+| PRD compliance | 31 | ✅ Pass |
+| Phase 1–10 (fast) | 83 | ✅ Pass |
+| Phase 11 (new improvements) | 30 | ✅ Pass |
+| **Total** | **144** | ✅ **All pass** |
+
+### 14.10 Further Suggestions (Not Yet Implemented)
+
+See `round3_report.md` for the full catalogue. Key items:
+
+| Priority | Item | Description |
+|----------|------|-------------|
+| 🔴 High | `career_momentum` tanh normalization | Replace linear ÷4 with `tanh(m/2)` for proportional slope scaling |
+| 🔴 High | `ML_DEPTH_MAX` increase | Raise from 15→25 to prevent single-role saturation |
+| 🔴 High | AI_ADJACENT honeypot extension | Extend `is_honeypot` to also fire for `AI_ADJACENT` titles |
+| 🟡 Medium | Skill-count damping in alignment | Avoid `1/1 = 1.0` for single-skill candidates |
+| 🟡 Medium | Open-source deduplication | Avoid double-counting same phrase in summary + description |
+| 🟡 Medium | Honeypot score label | Add `[HONEYPOT ×0.25]` to reasoning when multiplier applied |
+| 🟡 Medium | Assessment overlap denominator cap | Cap at `min(len(caps), 5)` to avoid underscore for candidates with good but partial assessment coverage |
+| 🟢 Low | Per-skill recency weighting | Weight current role skill matches higher than old ones |
+| 🟢 Low | Multi-JD score calibration | Normalize scores to percentile band per JD |
+| 🟢 Low | Streamlit app enhancements | Penalty breakdown table, score histogram, title domain filter |
+
+### 14.11 Files Changed in Round 3
+
+```
+ M fitrank/career_analyzer.py  (years_of_ml_experience, momentum fix)
+ M fitrank/ranker.py           (ml_tenure_years in ComponentScores)
+ M fitrank/reasoning.py        (precomputed ML tenure, seniority flag)
+ M fitrank/penalties.py        (seniority_mismatch penalty)
+ M fitrank/coherence.py        (unknown template fallback = 0.3)
+ M fitrank/title_gate.py       (NON_TECH_KEYWORDS → frozenset)
+ M config/weights.yaml         (seniority_mismatch: 0.04)
+?? tests/test_phase11_improvements.py  (30 new tests)
+ M CHANGELOG.md
+```
+
+## 15. Fourth Round of Improvements
+
+All suggestions from the Round 3 analysis report were implemented. This round focused on correctness, score discrimination, and tooling.
+
+### 15.1 Tier 1 — Critical Correctness
+
+#### `fitrank/career_analyzer.py`
+
+- **Raised `ML_DEPTH_MAX` from 15 → 25** so a single hyper-detailed role cannot saturate the career-depth score and multi-role genuine ML candidates retain discrimination.
+- **Added per-entry depth cap of 12** so one verbose role description does not dominate the entire career evidence.
+- **Replaced linear momentum normalization with `tanh`**:
+  - `momentum = 0` → `0.5` (neutral, not penalized)
+  - Bounded and monotonic across all slope magnitudes.
+
+#### `fitrank/coherence.py`
+
+- **Extended honeypot detection to `AI_ADJACENT` titles**. The flag now fires when an AI Specialist / Search Engineer / Recommendation Systems Engineer has a low normalized career ML depth (`all_career_ml_depth_norm < 0.2`) and an overall coherence score below 0.2.
+- **Made AI_ADJACENT title confirmation conditional on real career depth**. If `all_career_ml_depth < 2`, confirmation drops from 0.5 to 0.2, exposing title-chaser profiles.
+- **Added skill-count damping in `skill_career_alignment`**. The effective denominator is `max(len(ml_skills), 3)`, so a candidate with one matching skill maxes at 0.33 instead of 1.0.
+- **Added per-skill recency weighting** in `skill_career_alignment`. A skill found in the current role contributes `2×`; a skill found only in past roles contributes `1×`. This rewards up-to-date expertise.
+
+### 15.2 Tier 2 — High Priority
+
+#### `fitrank/ranker.py`
+
+- **Deduplicated the open-source search corpus**. Sentences are fingerprinted (first 80 chars, lowercased) so a phrase repeated in summary and the first career description only counts once.
+
+#### `fitrank/reasoning.py`
+
+- **Added `[HONEYPOT ×0.25]` label** to the score line when `components.is_honeypot` is true, making the post-multiplier score transparent to reviewers.
+
+#### `fitrank/signals.py`
+
+- **Capped the assessment-overlap denominator at 5** (`min(len(capabilities), 5)`). A candidate with 2 verified matching assessments out of 20 JD capabilities now scores 0.40 instead of 0.10, better reflecting the signal of platform-verified skills.
+
+### 15.3 Tier 3 — Medium Priority
+
+#### `fitrank/penalties.py`
+
+- **Made `template_mismatch` threshold-based**. It now fires only when `template_coherence < 0.1` **and** the template domain is known (not `unknown`), avoiding false positives for non-templated genuine profiles.
+
+#### `rank.py`
+
+- **Audit report path now follows the `--out` directory**. Running `rank.py --out tmp/sub.csv` writes `tmp/audit_report.json` instead of hardcoding `outputs/audit_report.json`.
+
+#### `validate_submission.py`
+
+- **Added reasoning quality checks**: empty reasoning, reasoning shorter than 20 characters, and missing `JD=X.XX` score field are now validation errors.
+
+### 15.4 Tier 4 — Low Priority / Tooling
+
+#### `fitrank/career_analyzer.py`
+
+- **Expanded `SHALLOW_AI_PATTERNS`** with 9 new regexes covering hobby projects, "learning PyTorch/TensorFlow/ML/DL", course completions (Coursera/Udemy), Andrew Ng/Fast.ai/DL.ai, and personal ChatGPT/OpenAI API projects.
+
+#### `fitrank/calibrator.py` (NEW)
+
+- **Multi-JD score calibration module**. `calibrate_scores()` linearly rescales the 10th–90th percentile band to a fixed target (default 0.40–0.90). It does **not** change relative ordering. Activated via the `--calibrate` flag in `rank.py` for internal multi-JD analysis only; **not used** for the challenge submission.
+
+#### `app/streamlit_app.py`
+
+- **Full overhaul**:
+  - Title-domain badges (🟢 ML_AI, 🟡 AI_ADJACENT, 🔵 SOFTWARE, 🔴 NON_TECH)
+  - ML tenure / total experience progress bar per candidate
+  - Expandable penalty breakdown table
+  - Score distribution histogram using `plotly`
+  - Sidebar filters: title domain, country, minimum score
+  - Download button exports the full 100-candidate submission
+- **`plotly` added to `requirements.txt`**.
+
+### 15.5 New Tests
+
+Created `tests/test_phase12_round4.py` with 34 focused tests covering every Round 4 change.
+
+```bash
+python -m pytest tests/test_phase12_round4.py -v
+```
+Result: **34 passed**.
+
+### 15.6 Validation After Round 4
+
+```bash
+python -m pytest tests/ -k "not generator_memory and not all_candidates_classified" -q
+```
+Result: **155 passed, 2 deselected** (the 2 deselected are the full-dataset slow tests).
+
+```bash
+python -m pytest tests/test_prd_compliance.py -q
+```
+Result: **31 passed**.
+
+```bash
+python rank.py
+```
+Result: `Submission is valid.` / `Ranked 100 candidates in 233.21s`.
+
+### 15.7 Round 4 Submission Metrics
+
+| Metric | Value |
+|--------|-------|
+| Runtime | 233.21 seconds |
+| Output rows | 100 |
+| Validator | Pass |
+| Honeypots in top 100 | 0 |
+| Honeypots in top 20 | 0 |
+| Score range | 0.5001 – 0.7419 |
+| Mean score | 0.5541 |
+| Unique reasoning | 100/100 |
+| Top candidate | CAND_0071974 (Senior AI Engineer, 0.7419) |
+| Computer Vision Engineers in top 100 | 7 (was 11) |
+| Top 10 title domains | 10/10 ML_AI |
+
+> **Note:** The mean score is slightly below the Round 3 target of 0.58 because raising `ML_DEPTH_MAX` to 25 (C1) intentionally reduces the normalized career-depth scores for the same raw evidence, improving discrimination. The ranking quality checks (top candidate preserved, CV count reduced, top-10 all ML_AI, no honeypots) are all met.
+
+### 15.8 Files Changed in Round 4
+
+```
+ M fitrank/career_analyzer.py    (ML_DEPTH_MAX, per-entry cap, tanh momentum, shallow patterns)
+ M fitrank/coherence.py          (AI_ADJACENT honeypot, recency-weighted skill alignment, damping)
+ M fitrank/ranker.py             (deduplicated open-source corpus)
+ M fitrank/reasoning.py          (honeypot label)
+ M fitrank/signals.py            (assessment overlap denominator cap)
+ M fitrank/penalties.py          (threshold-based template mismatch)
+ M fitrank/calibrator.py         (NEW — multi-JD score calibration)
+ M rank.py                       (audit path follows --out, --calibrate flag)
+ M validate_submission.py        (reasoning quality checks)
+ M app/streamlit_app.py          (full overhaul with plotly)
+ M requirements.txt              (added plotly)
+ M outputs/audit_report.json
+ M outputs/submission.csv
+?? tests/test_phase12_round4.py (34 new tests)
+ M CHANGELOG.md
+ M README.md
+```

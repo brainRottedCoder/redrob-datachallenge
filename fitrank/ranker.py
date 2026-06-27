@@ -28,6 +28,7 @@ class ComponentScores:
     final_score: float
     is_honeypot: bool
     penalties_detail: PenaltyScore
+    ml_tenure_years: float = 0.0
 
 
 def load_weights(path: str | Path = "config/weights.yaml") -> dict:
@@ -93,6 +94,7 @@ def score_candidate(
         final_score=round(final_score, 4),
         is_honeypot=coherence.is_honeypot,
         penalties_detail=penalties,
+        ml_tenure_years=career.years_of_ml_experience,
     )
     candidate_score = CandidateScore(
         candidate_id=candidate.candidate_id,
@@ -155,11 +157,20 @@ def _education_relevance(candidate: Candidate) -> float:
 
 
 def _open_source_corpus(candidate: Candidate) -> str:
-    """Build the open-source search corpus once per candidate."""
-    return " ".join(
-        [candidate.profile.summary, candidate.profile.headline]
-        + [entry.description for entry in candidate.career_history]
-    ).lower()
+    """Build the open-source search corpus once per candidate, deduplicating sentences."""
+    seen: set[str] = set()
+    parts: list[str] = []
+    for text in [
+        candidate.profile.summary,
+        candidate.profile.headline,
+        *[entry.description for entry in candidate.career_history],
+    ]:
+        for sentence in text.split("."):
+            key = sentence.strip().lower()[:80]
+            if key and key not in seen:
+                seen.add(key)
+                parts.append(sentence)
+    return " ".join(parts).lower()
 
 
 def _open_source_bonus(candidate: Candidate) -> float:

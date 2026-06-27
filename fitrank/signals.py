@@ -177,7 +177,7 @@ def _assessment_jd_overlap(
         name_lower = skill_name.lower()
         if any(_word_boundary_contains(name_lower, cap) for cap in capability_lower):
             matched += 1
-    return matched / len(capabilities)
+    return matched / min(len(capabilities), 5)
 
 
 def _word_boundary_contains(text: str, substring: str) -> bool:
