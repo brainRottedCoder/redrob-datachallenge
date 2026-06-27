@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 from enum import Enum
 from functools import lru_cache
 
@@ -46,6 +45,16 @@ ML_AI_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\bapplied\s+ml\s+engineer\b", re.I),
     re.compile(r"\bresearch\s+scientist\b", re.I),
     re.compile(r"\bapplied\s+scientist\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*llm\s+engineer\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*gen(?:erative)?\s*ai\s+engineer\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*data\s+science\s+lead\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*ai\s+scientist\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*machine\s+learning\s+scientist\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*deep\s+learning\s+engineer\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*nlp\s+scientist\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*search\s+scientist\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*ranking\s+engineer\b", re.I),
+    re.compile(r"\b(staff|senior|junior|lead|principal)?\s*recommendation\s+engineer\b", re.I),
 ]
 
 SOFTWARE_PATTERNS: list[re.Pattern[str]] = [
@@ -91,31 +100,64 @@ class TitleGateResult:
     title_domain_bonus: float
 
 
+# Substring keywords used by the fast path below.  These are intentionally kept
+# in sync with the regex patterns so that the public constants still document the
+# classification rules, but the hot path avoids expensive regex matching on the
+# full 100K-candidate dataset.
+_AI_ADJACENT_KEYWORDS = {
+    "ai specialist", "search engineer", "recommendation systems", "data engineer",
+    "software engineer (ml)", "senior software engineer (ml)",
+}
+
+_ML_AI_KEYWORDS = {
+    "ml engineer", "machine learning", "data scientist", "ai engineer", "nlp engineer",
+    "llm engineer", "genai engineer", "generative ai engineer", "deep learning engineer",
+    "computer vision engineer", "research scientist", "applied scientist",
+    "machine learning scientist", "ai scientist", "search scientist", "ranking engineer",
+    "recommendation engineer", "nlp scientist", "data science lead", "ml scientist",
+}
+
+
 def classify_title(title: str) -> TitleDomain:
     """Classify a candidate current title into a domain bucket."""
     return _classify_title_cached((title or "").strip())
 
 
-@lru_cache(maxsize=256)
+@lru_cache(maxsize=65536)
 def _classify_title_cached(normalized: str) -> TitleDomain:
     if not normalized:
         return TitleDomain.NON_TECH
 
-    for pattern in AI_ADJACENT_PATTERNS:
-        if pattern.search(normalized):
-            return TitleDomain.AI_ADJACENT
-
-    for pattern in ML_AI_PATTERNS:
-        if pattern.search(normalized):
-            return TitleDomain.ML_AI
-
-    for pattern in SOFTWARE_PATTERNS:
-        if pattern.search(normalized):
-            return TitleDomain.SOFTWARE
-
     lowered = normalized.lower()
+
+    # Fast non-tech rejection first (most profiles are non-ML).
     if any(keyword in lowered for keyword in NON_TECH_KEYWORDS):
         return TitleDomain.NON_TECH
+
+    # AI-adjacent titles are checked before ML_AI because some overlap semantically.
+    if "ai specialist" in lowered:
+        return TitleDomain.AI_ADJACENT
+    if "search engineer" in lowered:
+        return TitleDomain.AI_ADJACENT
+    if "recommendation systems" in lowered and "engineer" in lowered:
+        return TitleDomain.AI_ADJACENT
+    if "data engineer" in lowered and "ml" in lowered:
+        return TitleDomain.AI_ADJACENT
+    if "senior software engineer" in lowered and "ml" in lowered:
+        return TitleDomain.AI_ADJACENT
+
+    # Fast ML_AI path based on core substrings.
+    if any(keyword in lowered for keyword in _ML_AI_KEYWORDS):
+        return TitleDomain.ML_AI
+
+    # Fast software path.
+    sw_keywords = {
+        "software engineer", "full stack", "fullstack", "backend", "frontend",
+        "front end", "back end", "cloud engineer", "devops", "platform engineer",
+        "developer",
+    }
+    if any(keyword in lowered for keyword in sw_keywords):
+        return TitleDomain.SOFTWARE
 
     if re.search(r"\b(manager|director|lead|head|specialist|analyst|coordinator)\b", lowered):
         return TitleDomain.NON_TECH
@@ -180,19 +222,25 @@ def _title_similarity(left: str, right: str) -> float:
     if left_norm in right_norm or right_norm in left_norm:
         return 0.92
 
-    ratio = SequenceMatcher(None, left_norm, right_norm).ratio()
     left_tokens = set(left_norm.split())
     right_tokens = set(right_norm.split())
     if left_tokens and right_tokens:
         overlap = len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
-        ratio = max(ratio, overlap)
+    else:
+        overlap = 0.0
 
     left_core = _core_tokens(left_norm)
     right_core = _core_tokens(right_norm)
-    if left_core and right_core and not (left_core & right_core):
-        return min(ratio * 0.15, 0.08)
+    if left_core and right_core:
+        core_overlap = len(left_core & right_core) / len(left_core | right_core)
+    else:
+        core_overlap = 0.0
 
-    return ratio
+    # If no core tokens overlap, the titles are fundamentally different.
+    if left_core and right_core and not (left_core & right_core):
+        return min(overlap * 0.15, 0.08)
+
+    return max(overlap, core_overlap)
 
 
 def _core_tokens(normalized_title: str) -> set[str]:

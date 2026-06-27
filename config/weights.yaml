@@ -1,7 +1,7 @@
 # FitRank scoring component weights (PRD Section 7)
-jd_fit: 0.20
+jd_fit: 0.25
 career_evidence: 0.30
-coherence: 0.25
+coherence: 0.20
 platform_trust: 0.15
 availability: 0.10
 
@@ -28,8 +28,14 @@ platform_trust_components:
   verification: 0.15
 
 penalty_weights:
-  template_mismatch: 0.25
-  skill_inflation: 0.20
-  shallow_boilerplate: 0.15
-  expert_zero_endorse: 0.10
-  non_ml_title_high_skill: 0.15
+  template_mismatch: 0.20
+  skill_inflation: 0.15
+  shallow_boilerplate: 0.10
+  expert_zero_endorse: 0.08
+  non_ml_title_high_skill: 0.10
+  consulting_only: 0.07
+  pure_research: 0.07
+  cv_without_nlp: 0.07
+  salary_inverted: 0.07
+  experience_gap: 0.05
+  job_hopper: 0.04

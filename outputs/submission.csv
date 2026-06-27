@@ -1,101 +1,101 @@
 candidate_id,rank,score,reasoning
-CAND_0046064,1,0.6517,Senior NLP Engineer | JD=0.25 Career=0.55 Coh=1.00 Trust=0.75 | strong ML career evidence | low penalties (0.00)
-CAND_0062247,2,0.6475,AI Engineer | JD=0.63 Career=0.32 Coh=0.88 Trust=0.42 | limited ML career evidence | low penalties (0.00)
-CAND_0044222,3,0.6433,AI Engineer | JD=0.64 Career=0.28 Coh=0.79 Trust=0.71 | limited ML career evidence | low penalties (0.00)
-CAND_0005260,4,0.6392,Senior NLP Engineer | JD=0.22 Career=0.56 Coh=0.91 Trust=0.67 | strong ML career evidence | low penalties (0.00)
-CAND_0069905,5,0.635,Applied ML Engineer | JD=0.29 Career=0.43 Coh=0.82 Trust=0.74 | limited ML career evidence | low penalties (0.00)
-CAND_0058575,6,0.6308,AI Engineer | JD=0.61 Career=0.30 Coh=0.85 Trust=0.42 | limited ML career evidence | low penalties (0.00)
-CAND_0050454,7,0.6266,AI Engineer | JD=0.62 Career=0.27 Coh=0.78 Trust=0.53 | limited ML career evidence | low penalties (0.00)
-CAND_0070398,8,0.6225,Machine Learning Engineer | JD=0.27 Career=0.42 Coh=0.79 Trust=0.73 | limited ML career evidence | low penalties (0.00)
-CAND_0060054,9,0.6183,AI Engineer | JD=0.61 Career=0.20 Coh=0.88 Trust=0.66 | limited ML career evidence | low penalties (0.00)
-CAND_0040887,10,0.6141,Machine Learning Engineer | JD=0.25 Career=0.38 Coh=0.79 Trust=0.74 | limited ML career evidence | low penalties (0.00)
-CAND_0033861,11,0.6099,Senior NLP Engineer | JD=0.31 Career=0.47 Coh=0.82 Trust=0.68 | limited ML career evidence | low penalties (0.00)
-CAND_0029367,12,0.6058,Senior Data Scientist | JD=0.27 Career=0.37 Coh=0.83 Trust=0.62 | limited ML career evidence | low penalties (0.00)
-CAND_0013613,13,0.6016,Machine Learning Engineer | JD=0.28 Career=0.28 Coh=0.78 Trust=0.74 | limited ML career evidence | low penalties (0.00)
-CAND_0030348,14,0.5974,Machine Learning Engineer | JD=0.18 Career=0.32 Coh=0.81 Trust=0.70 | limited ML career evidence | low penalties (0.00)
-CAND_0028793,15,0.5932,Search Engineer | JD=0.28 Career=0.38 Coh=0.51 Trust=0.86 | limited ML career evidence | low penalties (0.00)
-CAND_0020877,16,0.589,Applied ML Engineer | JD=0.31 Career=0.27 Coh=0.75 Trust=0.83 | limited ML career evidence | low penalties (0.00)
-CAND_0005649,17,0.5849,Senior Data Scientist | JD=0.24 Career=0.34 Coh=0.79 Trust=0.50 | limited ML career evidence | low penalties (0.00)
-CAND_0026532,18,0.5807,Recommendation Systems Engineer | JD=0.27 Career=0.35 Coh=0.58 Trust=0.75 | limited ML career evidence | low penalties (0.00)
-CAND_0079064,19,0.5765,Senior Data Scientist | JD=0.27 Career=0.27 Coh=0.75 Trust=0.65 | limited ML career evidence | low penalties (0.00)
-CAND_0001610,20,0.5723,Machine Learning Engineer | JD=0.26 Career=0.24 Coh=0.81 Trust=0.45 | limited ML career evidence | low penalties (0.00)
-CAND_0036184,21,0.5682,Recommendation Systems Engineer | JD=0.25 Career=0.31 Coh=0.55 Trust=0.70 | limited ML career evidence | low penalties (0.00)
-CAND_0096172,22,0.564,NLP Engineer | JD=0.27 Career=0.20 Coh=0.85 Trust=0.50 | limited ML career evidence | low penalties (0.00)
-CAND_0003977,23,0.5598,Recommendation Systems Engineer | JD=0.22 Career=0.42 Coh=0.46 Trust=0.77 | limited ML career evidence | low penalties (0.00)
-CAND_0020708,24,0.5556,Search Engineer | JD=0.24 Career=0.24 Coh=0.49 Trust=0.69 | limited ML career evidence | low penalties (0.00)
-CAND_0094056,25,0.5515,NLP Engineer | JD=0.19 Career=0.20 Coh=0.86 Trust=0.39 | limited ML career evidence | low penalties (0.00)
-CAND_0070485,26,0.5473,Search Engineer | JD=0.20 Career=0.17 Coh=0.62 Trust=0.62 | limited ML career evidence | low penalties (0.00)
-CAND_0018722,27,0.5431,Recommendation Systems Engineer | JD=0.20 Career=0.17 Coh=0.52 Trust=0.60 | limited ML career evidence | low penalties (0.00)
-CAND_0054394,28,0.5389,Recommendation Systems Engineer | JD=0.24 Career=0.21 Coh=0.54 Trust=0.41 | limited ML career evidence | low penalties (0.00)
-CAND_0071974,29,0.5348,Senior AI Engineer | JD=0.61 Career=0.50 Coh=0.52 Trust=0.84 | limited ML career evidence | low penalties (0.25)
-CAND_0061265,30,0.5306,Recommendation Systems Engineer | JD=0.29 Career=0.28 Coh=0.50 Trust=0.70 | limited ML career evidence | low penalties (0.10)
-CAND_0055992,31,0.5264,AI Engineer | JD=0.67 Career=0.36 Coh=0.47 Trust=0.81 | limited ML career evidence | low penalties (0.25)
-CAND_0076251,32,0.5222,Search Engineer | JD=0.23 Career=0.24 Coh=0.54 Trust=0.50 | limited ML career evidence | low penalties (0.10)
-CAND_0079387,33,0.518,AI Engineer | JD=0.66 Career=0.36 Coh=0.41 Trust=0.79 | limited ML career evidence | low penalties (0.25)
-CAND_0018499,34,0.5139,Senior Machine Learning Engineer | JD=0.28 Career=0.44 Coh=0.49 Trust=0.88 | limited ML career evidence | low penalties (0.25)
-CAND_0015578,35,0.5097,AI Engineer | JD=0.59 Career=0.42 Coh=0.41 Trust=0.68 | limited ML career evidence | low penalties (0.25)
-CAND_0091534,36,0.5055,AI Engineer | JD=0.65 Career=0.33 Coh=0.50 Trust=0.80 | limited ML career evidence | low penalties (0.25)
-CAND_0097014,37,0.5013,Analytics Engineer | JD=0.16 Career=0.15 Coh=0.28 Trust=0.58 | limited ML career evidence | low penalties (0.05)
-CAND_0039754,38,0.4972,Senior Applied Scientist | JD=0.33 Career=0.43 Coh=0.43 Trust=0.85 | limited ML career evidence | low penalties (0.25)
-CAND_0052485,39,0.493,Analytics Engineer | JD=0.18 Career=0.18 Coh=0.28 Trust=0.55 | limited ML career evidence | low penalties (0.05)
-CAND_0093006,40,0.4888,Backend Engineer | JD=0.11 Career=0.15 Coh=0.28 Trust=0.71 | limited ML career evidence | low penalties (0.05)
-CAND_0048024,41,0.4846,Data Engineer | JD=0.17 Career=0.15 Coh=0.28 Trust=0.61 | limited ML career evidence | low penalties (0.05)
-CAND_0055905,42,0.4805,Senior Machine Learning Engineer | JD=0.31 Career=0.59 Coh=0.45 Trust=0.64 | strong ML career evidence | low penalties (0.25)
-CAND_0037264,43,0.4763,Analytics Engineer | JD=0.16 Career=0.15 Coh=0.28 Trust=0.66 | limited ML career evidence | low penalties (0.05)
-CAND_0049687,44,0.4721,Senior Software Engineer | JD=0.17 Career=0.18 Coh=0.28 Trust=0.48 | limited ML career evidence | low penalties (0.05)
-CAND_0035321,45,0.4679,Senior Data Engineer | JD=0.13 Career=0.13 Coh=0.28 Trust=0.71 | limited ML career evidence | low penalties (0.05)
-CAND_0002025,46,0.4637,Senior AI Engineer | JD=0.64 Career=0.41 Coh=0.41 Trust=0.61 | limited ML career evidence | low penalties (0.25)
-CAND_0071617,47,0.4596,Data Engineer | JD=0.18 Career=0.15 Coh=0.28 Trust=0.67 | limited ML career evidence | low penalties (0.05)
-CAND_0034548,48,0.4554,Data Engineer | JD=0.17 Career=0.18 Coh=0.28 Trust=0.57 | limited ML career evidence | low penalties (0.05)
-CAND_0050732,49,0.4512,Data Engineer | JD=0.11 Career=0.18 Coh=0.28 Trust=0.55 | limited ML career evidence | low penalties (0.05)
-CAND_0093547,50,0.447,Senior Machine Learning Engineer | JD=0.28 Career=0.66 Coh=0.41 Trust=0.81 | strong ML career evidence | low penalties (0.25)
-CAND_0089869,51,0.4429,Senior Data Engineer | JD=0.17 Career=0.15 Coh=0.28 Trust=0.64 | limited ML career evidence | low penalties (0.05)
-CAND_0008425,52,0.4387,Senior NLP Engineer | JD=0.27 Career=0.49 Coh=0.50 Trust=0.79 | limited ML career evidence | low penalties (0.25)
-CAND_0098200,53,0.4345,Data Engineer | JD=0.12 Career=0.12 Coh=0.28 Trust=0.60 | limited ML career evidence | low penalties (0.05)
-CAND_0081846,54,0.4303,Lead AI Engineer | JD=0.61 Career=0.21 Coh=0.50 Trust=0.70 | limited ML career evidence | low penalties (0.25)
-CAND_0022659,55,0.4262,Software Engineer | JD=0.09 Career=0.15 Coh=0.28 Trust=0.59 | limited ML career evidence | low penalties (0.05)
-CAND_0026344,56,0.422,Software Engineer | JD=0.07 Career=0.15 Coh=0.28 Trust=0.70 | limited ML career evidence | low penalties (0.05)
-CAND_0054453,57,0.4178,Senior Data Engineer | JD=0.18 Career=0.15 Coh=0.28 Trust=0.54 | limited ML career evidence | low penalties (0.05)
-CAND_0018555,58,0.4136,Backend Engineer | JD=0.17 Career=0.20 Coh=0.39 Trust=0.25 | limited ML career evidence | low penalties (0.05)
-CAND_0073738,59,0.4094,Data Engineer | JD=0.17 Career=0.14 Coh=0.39 Trust=0.44 | limited ML career evidence | low penalties (0.05)
-CAND_0089306,60,0.4053,Senior Data Engineer | JD=0.16 Career=0.07 Coh=0.28 Trust=0.66 | limited ML career evidence | low penalties (0.05)
-CAND_0044804,61,0.4011,Software Engineer | JD=0.17 Career=0.11 Coh=0.28 Trust=0.48 | limited ML career evidence | low penalties (0.05)
-CAND_0098628,62,0.3969,Senior Software Engineer | JD=0.17 Career=0.07 Coh=0.28 Trust=0.66 | limited ML career evidence | low penalties (0.05)
-CAND_0046231,63,0.3927,Backend Engineer | JD=0.17 Career=0.15 Coh=0.28 Trust=0.55 | limited ML career evidence | low penalties (0.05)
-CAND_0073810,64,0.3886,Senior Data Engineer | JD=0.16 Career=0.18 Coh=0.28 Trust=0.62 | limited ML career evidence | low penalties (0.05)
-CAND_0056795,65,0.3844,Software Engineer | JD=0.07 Career=0.13 Coh=0.39 Trust=0.59 | limited ML career evidence | low penalties (0.05)
-CAND_0048774,66,0.3802,Senior Data Engineer | JD=0.16 Career=0.18 Coh=0.28 Trust=0.53 | limited ML career evidence | low penalties (0.05)
-CAND_0097018,67,0.376,Backend Engineer | JD=0.13 Career=0.08 Coh=0.28 Trust=0.77 | limited ML career evidence | low penalties (0.05)
-CAND_0074887,68,0.3719,Senior Software Engineer | JD=0.16 Career=0.07 Coh=0.28 Trust=0.70 | limited ML career evidence | low penalties (0.05)
-CAND_0043189,69,0.3677,Analytics Engineer | JD=0.12 Career=0.15 Coh=0.28 Trust=0.61 | limited ML career evidence | low penalties (0.05)
-CAND_0090844,70,0.3635,Senior Software Engineer | JD=0.18 Career=0.07 Coh=0.28 Trust=0.53 | limited ML career evidence | low penalties (0.05)
-CAND_0009184,71,0.3593,Backend Engineer | JD=0.18 Career=0.11 Coh=0.28 Trust=0.52 | limited ML career evidence | low penalties (0.05)
-CAND_0000665,72,0.3551,Senior Software Engineer | JD=0.17 Career=0.09 Coh=0.28 Trust=0.67 | limited ML career evidence | low penalties (0.05)
-CAND_0020094,73,0.351,Analytics Engineer | JD=0.06 Career=0.15 Coh=0.28 Trust=0.68 | limited ML career evidence | low penalties (0.05)
-CAND_0057357,74,0.3468,Analytics Engineer | JD=0.17 Career=0.09 Coh=0.28 Trust=0.78 | limited ML career evidence | low penalties (0.05)
-CAND_0060697,75,0.3426,Analytics Engineer | JD=0.17 Career=0.07 Coh=0.28 Trust=0.63 | limited ML career evidence | low penalties (0.05)
-CAND_0081641,76,0.3384,Senior Software Engineer | JD=0.17 Career=0.07 Coh=0.28 Trust=0.57 | limited ML career evidence | low penalties (0.05)
-CAND_0009471,77,0.3343,Analytics Engineer | JD=0.16 Career=0.15 Coh=0.28 Trust=0.49 | limited ML career evidence | low penalties (0.05)
-CAND_0074040,78,0.3301,Senior Software Engineer | JD=0.13 Career=0.07 Coh=0.28 Trust=0.57 | limited ML career evidence | low penalties (0.05)
-CAND_0073180,79,0.3259,Senior Software Engineer | JD=0.08 Career=0.15 Coh=0.28 Trust=0.67 | limited ML career evidence | low penalties (0.05)
-CAND_0063118,80,0.3217,Analytics Engineer | JD=0.17 Career=0.07 Coh=0.28 Trust=0.60 | limited ML career evidence | low penalties (0.05)
-CAND_0005847,81,0.3176,Senior Software Engineer | JD=0.17 Career=0.15 Coh=0.28 Trust=0.50 | limited ML career evidence | low penalties (0.05)
-CAND_0059542,82,0.3134,Analytics Engineer | JD=0.16 Career=0.11 Coh=0.28 Trust=0.57 | limited ML career evidence | low penalties (0.05)
-CAND_0047276,83,0.3092,Backend Engineer | JD=0.07 Career=0.07 Coh=0.28 Trust=0.74 | limited ML career evidence | low penalties (0.05)
-CAND_0088665,84,0.305,Senior Software Engineer | JD=0.08 Career=0.09 Coh=0.28 Trust=0.67 | limited ML career evidence | low penalties (0.05)
-CAND_0002876,85,0.3009,Software Engineer | JD=0.09 Career=0.15 Coh=0.28 Trust=0.64 | limited ML career evidence | low penalties (0.05)
-CAND_0023387,86,0.2967,Backend Engineer | JD=0.05 Career=0.13 Coh=0.28 Trust=0.56 | limited ML career evidence | low penalties (0.05)
-CAND_0057992,87,0.2925,Senior Software Engineer | JD=0.13 Career=0.04 Coh=0.28 Trust=0.73 | limited ML career evidence | low penalties (0.05)
-CAND_0036709,88,0.2883,Software Engineer | JD=0.12 Career=0.07 Coh=0.28 Trust=0.64 | limited ML career evidence | low penalties (0.05)
-CAND_0072223,89,0.2841,Analytics Engineer | JD=0.18 Career=0.07 Coh=0.28 Trust=0.64 | limited ML career evidence | low penalties (0.05)
-CAND_0048214,90,0.28,Data Engineer | JD=0.16 Career=0.15 Coh=0.28 Trust=0.58 | limited ML career evidence | low penalties (0.05)
-CAND_0054649,91,0.2758,Software Engineer | JD=0.17 Career=0.13 Coh=0.28 Trust=0.47 | limited ML career evidence | low penalties (0.05)
-CAND_0040192,92,0.2716,Software Engineer | JD=0.08 Career=0.15 Coh=0.28 Trust=0.51 | limited ML career evidence | low penalties (0.05)
-CAND_0059386,93,0.2674,Software Engineer | JD=0.16 Career=0.07 Coh=0.28 Trust=0.51 | limited ML career evidence | low penalties (0.05)
-CAND_0093426,94,0.2633,Senior Data Engineer | JD=0.06 Career=0.15 Coh=0.28 Trust=0.63 | limited ML career evidence | low penalties (0.05)
-CAND_0066137,95,0.2591,Software Engineer | JD=0.13 Career=0.15 Coh=0.28 Trust=0.59 | limited ML career evidence | low penalties (0.05)
-CAND_0078165,96,0.2549,Backend Engineer | JD=0.07 Career=0.11 Coh=0.28 Trust=0.63 | limited ML career evidence | low penalties (0.05)
-CAND_0078256,97,0.2507,Senior Software Engineer | JD=0.15 Career=0.15 Coh=0.28 Trust=0.51 | limited ML career evidence | low penalties (0.05)
-CAND_0013440,98,0.2466,Senior Data Engineer | JD=0.15 Career=0.05 Coh=0.28 Trust=0.56 | limited ML career evidence | low penalties (0.05)
-CAND_0072817,99,0.2424,Analytics Engineer | JD=0.16 Career=0.00 Coh=0.28 Trust=0.74 | limited ML career evidence | low penalties (0.05)
-CAND_0077148,100,0.2382,Data Engineer | JD=0.20 Career=0.07 Coh=0.28 Trust=0.54 | limited ML career evidence | low penalties (0.05)
+CAND_0071974,1,0.7889,"Senior AI Engineer | JD=0.75 Career=0.79 Coh=0.83 Trust=0.85 | current role: embedding,Pinecone,recommendation; assessments LoRA=87, PEFT=86; GH 83; 7.8yrs total/7.7yrs ML India (OTW/45d notice)"
+CAND_0055992,2,0.7651,"AI Engineer | JD=0.72 Career=0.70 Coh=0.84 Trust=0.81 | current role: RAG,embedding,Pinecone; assessments RAG=87, MLflow=71; GH 65; 16.9yrs total/6.7yrs ML (OTW/60d notice/reloc)"
+CAND_0081846,3,0.7463,"Lead AI Engineer | JD=0.69 Career=0.73 Coh=0.80 Trust=0.71 | current role: RAG,embedding,FAISS; assessments LlamaIndex=68; GH 34; 6.7yrs total/6.6yrs ML India (OTW/≤30d notice/reloc)"
+CAND_0079387,4,0.7284,"AI Engineer | JD=0.71 Career=0.64 Coh=0.81 Trust=0.79 | current role: embedding,sentence-transformer,recommendation; assessments Recommendation Systems=84; GH 64; 6.9yrs total/6.8yrs ML India (OTW/≤30d notice)"
+CAND_0018499,5,0.7145,"Senior Machine Learning Engineer | JD=0.34 Career=0.79 Coh=0.86 Trust=0.89 | current role: RAG,embedding,FAISS; assessments Weaviate=72; GH 95; 7.2yrs total/7.2yrs ML Noida (OTW/≤30d notice/reloc)"
+CAND_0015578,6,0.7076,"AI Engineer | JD=0.64 Career=0.69 Coh=0.81 Trust=0.68 | current role: RAG,embedding,Pinecone; no assessments; GH 28; 5.4yrs total/5.3yrs ML Delhi (OTW/90d notice/reloc)"
+CAND_0002025,7,0.6938,"Senior AI Engineer | JD=0.72 Career=0.64 Coh=0.78 Trust=0.61 | current role: LoRA,embedding,sentence-transformer; no assessments; GH 97; 5.9yrs total/5.8yrs ML India (OTW/≤30d notice)"
+CAND_0039754,8,0.6933,"Senior Applied Scientist | JD=0.36 Career=0.79 Coh=0.75 Trust=0.85 | current role: embedding,Pinecone,recommendation; assessments Fine-tuning LLMs=96, LlamaIndex=65; GH 78; 16.2yrs total/8.2yrs ML India (OTW/≤30d notice/reloc)"
+CAND_0046064,9,0.6817,"Senior NLP Engineer | JD=0.38 Career=0.76 Coh=0.88 Trust=0.75 | current role: LoRA,QLoRA,BentoML; no assessments; GH 67; 8.9yrs total/8.8yrs ML India (OTW/≤30d notice)"
+CAND_0077337,10,0.6795,"Staff Machine Learning Engineer | JD=0.33 Career=0.73 Coh=0.88 Trust=0.78 | current role: LoRA,embedding,sentence-transformer; assessments Semantic Search=63; GH 68; 7.0yrs total/6.9yrs ML India (OTW/60d notice/reloc)"
+CAND_0008425,11,0.6742,"Senior NLP Engineer | JD=0.34 Career=0.74 Coh=0.85 Trust=0.82 | current role: semantic search,embedding,sentence-transformer; no assessments; GH 53; 7.8yrs total/7.7yrs ML Kolkata (OTW/90d notice)"
+CAND_0005260,12,0.6688,"Senior NLP Engineer | JD=0.34 Career=0.84 Coh=0.84 Trust=0.67 | current role: LoRA,QLoRA,BentoML; no assessments; no GH; 5.2yrs total/5.1yrs ML Chennai (60d notice/reloc)"
+CAND_0099581,13,0.6667,AI Specialist | JD=0.59 Career=0.74 Coh=0.62 Trust=0.67 | current role: PyTorch; assessments Pinecone=81; no GH; 6.4yrs total/6.2yrs ML Delhi (OTW/120d notice/reloc)
+CAND_0055905,14,0.6647,"Senior Machine Learning Engineer | JD=0.36 Career=0.84 Coh=0.80 Trust=0.64 | current role: semantic search,embedding,sentence-transformer; assessments Hugging Face Transformers=65; no GH; 8.1yrs total/8.0yrs ML (OTW/≤30d notice)"
+CAND_0058575,15,0.6567,"AI Engineer | JD=0.66 Career=0.62 Coh=0.80 Trust=0.43 | current role: semantic search,sentence-transformer,FAISS; no assessments; GH 35; 5.8yrs total/5.8yrs ML Chennai (OTW/90d notice/reloc)"
+CAND_0086022,16,0.6487,"Senior Applied Scientist | JD=0.33 Career=0.63 Coh=0.77 Trust=0.85 | current role: RAG,embedding,FAISS; assessments Vector Search=93, Recommendation Systems=79; GH 75; 5.3yrs total/5.2yrs ML Kolkata (OTW/≤30d notice/reloc)"
+CAND_0007411,17,0.6445,"Senior Machine Learning Engineer | JD=0.33 Career=0.76 Coh=0.75 Trust=0.79 | current role: embedding,Pinecone,recommendation; assessments Vector Search=91, Fine-tuning LLMs=76; GH 90; 8.0yrs total/7.9yrs ML India (≤30d notice/reloc)"
+CAND_0041611,18,0.6433,"Staff Machine Learning Engineer | JD=0.34 Career=0.81 Coh=0.78 Trust=0.65 | current role: RAG,embedding,FAISS; assessments LlamaIndex=94; no GH; 6.4yrs total/6.2yrs ML (≤30d notice/reloc)"
+CAND_0050454,19,0.6432,"AI Engineer | JD=0.69 Career=0.48 Coh=0.78 Trust=0.55 | current role: semantic search,sentence-transformer,FAISS; assessments PyTorch=59; no GH; 6.8yrs total/6.8yrs ML Delhi (OTW/≤30d notice/reloc)"
+CAND_0060054,20,0.6427,"AI Engineer | JD=0.67 Career=0.42 Coh=0.88 Trust=0.69 | current role: semantic search,sentence-transformer,FAISS; assessments TensorFlow=90; no GH; 6.4yrs total/6.3yrs ML India (≤30d notice/reloc)"
+CAND_0011687,21,0.6369,"Senior NLP Engineer | JD=0.35 Career=0.64 Coh=0.75 Trust=0.84 | current role: embedding,Pinecone,recommendation; assessments TensorFlow=78; GH 76; 7.8yrs total/7.7yrs ML India (OTW/≤30d notice)"
+CAND_0044222,22,0.6348,"AI Engineer | JD=0.71 Career=0.43 Coh=0.75 Trust=0.72 | current role: semantic search,sentence-transformer,FAISS; assessments LlamaIndex=85, Vector Search=52; GH 29; 7.7yrs total/7.7yrs ML India (OTW/60d notice)"
+CAND_0069905,23,0.6347,"Applied ML Engineer | JD=0.33 Career=0.67 Coh=0.79 Trust=0.76 | current role: semantic search,sentence-transformer,FAISS; assessments LoRA=71; GH 45; 6.6yrs total/6.5yrs ML India (OTW/90d notice/reloc)"
+CAND_0044855,24,0.6345,"Senior Data Scientist | JD=0.32 Career=0.76 Coh=0.80 Trust=0.68 | current role: RAG,embedding,Pinecone; assessments BentoML=80, Hugging Face Transformers=67; GH 47; 6.6yrs total/6.5yrs ML India (60d notice/reloc)"
+CAND_0020350,25,0.6305,AI Engineer | JD=0.63 Career=0.51 Coh=0.75 Trust=0.65 | current role: MLflow; assessments LoRA=51; no GH; 5.8yrs total/5.8yrs ML India (OTW/≤30d notice)
+CAND_0005191,26,0.6304,"AI Specialist | JD=0.67 Career=0.61 Coh=0.54 Trust=0.60 | current role: fine-tuning,PyTorch,Hugging Face; assessments Hugging Face Transformers=70; GH 35; 6.2yrs total/4.8yrs ML India (OTW/60d notice/reloc)"
+CAND_0087630,27,0.6264,"AI Engineer | JD=0.66 Career=0.46 Coh=0.79 Trust=0.65 | current role: embedding,sentence-transformer,recommendation; no assessments; GH 23; 7.2yrs total/7.1yrs ML Gurgaon (≤30d notice/reloc)"
+CAND_0088025,28,0.6262,"Staff Machine Learning Engineer | JD=0.34 Career=0.61 Coh=0.78 Trust=0.90 | current role: embedding,Pinecone,recommendation; assessments Pinecone=94, QLoRA=87; GH 75; 8.6yrs total/8.5yrs ML India (OTW/90d notice)"
+CAND_0037566,29,0.6241,"Machine Learning Engineer | JD=0.29 Career=0.61 Coh=0.75 Trust=0.85 | current role: RAG,embedding,Pinecone; assessments Pinecone=82; GH 73; 6.9yrs total/6.8yrs ML Bangalore (OTW/≤30d notice/reloc)"
+CAND_0054100,30,0.6233,Junior ML Engineer | JD=0.27 Career=0.69 Coh=0.81 Trust=0.70 | current role: PyTorch; assessments Vector Search=82; GH 73; 6.0yrs total/5.9yrs ML Kolkata (OTW/60d notice)
+CAND_0093331,31,0.622,"NLP Engineer | JD=0.29 Career=0.71 Coh=0.75 Trust=0.79 | current role: MLflow; assessments PyTorch=73, QLoRA=60; GH 74; 16.1yrs total/7.2yrs ML India (≤30d notice/reloc)"
+CAND_0074735,32,0.6199,"Applied ML Engineer | JD=0.27 Career=0.64 Coh=0.83 Trust=0.85 | current role: RAG,embedding,Pinecone; assessments RAG=68; GH 88; 5.5yrs total/5.4yrs ML India (OTW/90d notice)"
+CAND_0007412,33,0.6178,"Applied ML Engineer | JD=0.27 Career=0.71 Coh=0.81 Trust=0.69 | current role: RAG,embedding,Pinecone; no assessments; GH 36; 7.4yrs total/7.2yrs ML Noida (OTW/120d notice)"
+CAND_0058688,34,0.6178,AI Engineer | JD=0.64 Career=0.33 Coh=0.79 Trust=0.75 | current role: MLflow; no assessments; GH 39; 6.7yrs total/6.7yrs ML (OTW/≤30d notice/reloc)
+CAND_0033861,35,0.6164,"Senior NLP Engineer | JD=0.38 Career=0.69 Coh=0.82 Trust=0.68 | current role: LoRA,QLoRA,BentoML; assessments Weaviate=80, LoRA=67; GH 33; 8.0yrs total/7.9yrs ML India (≤30d notice)"
+CAND_0094292,36,0.6146,"AI Specialist | JD=0.66 Career=0.61 Coh=0.54 Trust=0.56 | current role: fine-tuning,PyTorch,Hugging Face; assessments PyTorch=74; no GH; 6.5yrs total/5.2yrs ML Mumbai (OTW/60d notice)"
+CAND_0062247,37,0.6139,"AI Engineer | JD=0.69 Career=0.47 Coh=0.75 Trust=0.42 | current role: semantic search,sentence-transformer,FAISS; no assessments; GH 53; 7.3yrs total/7.2yrs ML India (OTW/≤30d notice/reloc)"
+CAND_0070398,38,0.6116,"Machine Learning Engineer | JD=0.31 Career=0.63 Coh=0.79 Trust=0.73 | current role: semantic search,sentence-transformer,FAISS; assessments RAG=85; GH 63; 7.2yrs total/7.1yrs ML India (OTW/120d notice/reloc)"
+CAND_0092568,39,0.6083,AI Specialist | JD=0.65 Career=0.68 Coh=0.46 Trust=0.47 | current role: PyTorch; no assessments; GH 40; 5.7yrs total/5.7yrs ML Noida (OTW/60d notice/reloc)
+CAND_0093547,40,0.6051,"Senior Machine Learning Engineer | JD=0.36 Career=0.79 Coh=0.78 Trust=0.84 | current role: embedding,Pinecone,recommendation; assessments RAG=97; GH 60; 2.9yrs total/6.2yrs ML India (60d notice); | experience gap (0.05)"
+CAND_0077067,41,0.6046,AI Specialist | JD=0.66 Career=0.60 Coh=0.46 Trust=0.68 | current role: model deployment; no assessments; GH 25; 5.4yrs total/5.3yrs ML India (OTW/90d notice)
+CAND_0027801,42,0.5988,"NLP Engineer | JD=0.29 Career=0.60 Coh=0.79 Trust=0.78 | current role: MLflow; assessments FAISS=82, Milvus=53; GH 63; 7.4yrs total/7.2yrs ML Hyderabad (OTW/120d notice)"
+CAND_0092278,43,0.5969,"Senior NLP Engineer | JD=0.36 Career=0.74 Coh=0.75 Trust=0.59 | current role: LoRA,embedding,sentence-transformer; assessments TensorFlow=67; no GH; 6.8yrs total/6.7yrs ML Pune (90d notice)"
+CAND_0030031,44,0.5962,"AI Engineer | JD=0.68 Career=0.41 Coh=0.75 Trust=0.66 | current role: embedding,sentence-transformer,recommendation; assessments PyTorch=91; GH 32; 5.7yrs total/5.6yrs ML India (≤30d notice)"
+CAND_0044883,45,0.5949,"AI Engineer | JD=0.70 Career=0.68 Coh=0.78 Trust=0.54 | current role: RAG,embedding,Pinecone; no assessments; GH 70; 6.3yrs total/6.2yrs ML (90d notice/reloc); | expert zero-endorse (0.08)"
+CAND_0094728,46,0.5934,"AI Specialist | JD=0.62 Career=0.61 Coh=0.46 Trust=0.64 | current role: fine-tuning,PyTorch,Hugging Face; assessments RAG=85, MLflow=80; GH 68; 6.5yrs total/6.4yrs ML Chennai (≤30d notice/reloc)"
+CAND_0025335,47,0.5933,"Data Scientist | JD=0.25 Career=0.65 Coh=0.81 Trust=0.57 | current role: fine-tuning,PyTorch,Hugging Face; assessments TensorFlow=60; no GH; 6.6yrs total/6.5yrs ML Delhi (OTW/45d notice/reloc)"
+CAND_0016163,48,0.5923,"Applied ML Engineer | JD=0.31 Career=0.56 Coh=0.75 Trust=0.84 | current role: MLflow; assessments Weaviate=88, Hugging Face Transformers=53; GH 95; 6.7yrs total/6.6yrs ML Gurgaon (OTW/120d notice)"
+CAND_0003791,49,0.5908,ML Engineer | JD=0.26 Career=0.59 Coh=0.85 Trust=0.74 | current role: model deployment; no assessments; GH 58; 6.6yrs total/6.5yrs ML (OTW/45d notice)
+CAND_0064904,50,0.5899,"AI Engineer | JD=0.68 Career=0.44 Coh=0.79 Trust=0.72 | current role: MLflow; assessments Embeddings=62, Hugging Face Transformers=54; GH 59; 4.9yrs total/4.8yrs ML Hyderabad (OTW/90d notice); | experience gap (0.05)"
+CAND_0065139,51,0.5867,"AI Research Engineer | JD=0.53 Career=0.72 Coh=0.49 Trust=0.60 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; no GH; 5.2yrs total/5.1yrs ML India (60d notice)"
+CAND_0097176,52,0.5865,"ML Engineer | JD=0.27 Career=0.52 Coh=0.83 Trust=0.76 | current role: fine-tuning,PyTorch,Hugging Face; assessments LlamaIndex=84, PyTorch=53; GH 45; 5.9yrs total/2.4yrs ML Gurgaon (OTW/≤30d notice)"
+CAND_0098454,53,0.584,AI Specialist | JD=0.67 Career=0.40 Coh=0.54 Trust=0.71 | current role: model deployment; no assessments; GH 29; 6.6yrs total/6.5yrs ML India (OTW/60d notice/reloc)
+CAND_0028793,54,0.5838,"Search Engineer | JD=0.32 Career=0.63 Coh=0.51 Trust=0.90 | current role: semantic search,sentence-transformer,FAISS; assessments Embeddings=89; GH 83; 7.2yrs total/7.1yrs ML India (OTW/120d notice/reloc)"
+CAND_0005649,55,0.5825,"Senior Data Scientist | JD=0.30 Career=0.65 Coh=0.79 Trust=0.50 | current role: semantic search,sentence-transformer,FAISS; no assessments; GH 81; 7.4yrs total/7.3yrs ML Delhi (OTW/90d notice/reloc)"
+CAND_0031703,56,0.582,"ML Engineer | JD=0.27 Career=0.68 Coh=0.81 Trust=0.61 | current role: fine-tuning,PyTorch,Hugging Face; assessments BentoML=87; no GH; 6.8yrs total/5.1yrs ML India (OTW/120d notice)"
+CAND_0058517,57,0.5799,"Computer Vision Engineer | JD=0.25 Career=0.61 Coh=0.79 Trust=0.71 | current role: fine-tuning,PyTorch,Hugging Face; assessments LlamaIndex=78, BentoML=56; GH 77; 5.1yrs total/5.0yrs ML India (OTW/45d notice)"
+CAND_0068811,58,0.5796,"Applied ML Engineer | JD=0.30 Career=0.59 Coh=0.83 Trust=0.49 | current role: embedding,sentence-transformer,recommendation; assessments Vector Search=53; GH 23; 8.0yrs total/7.9yrs ML Pune (OTW/≤30d notice/reloc)"
+CAND_0004972,59,0.5743,"ML Engineer | JD=0.28 Career=0.61 Coh=0.80 Trust=0.71 | current role: fine-tuning,PyTorch,Hugging Face; assessments Semantic Search=86, BentoML=83; GH 32; 6.0yrs total/5.9yrs ML Gurgaon (90d notice)"
+CAND_0020845,60,0.5742,"AI Research Engineer | JD=0.53 Career=0.72 Coh=0.46 Trust=0.46 | current role: fine-tuning,PyTorch,Hugging Face; assessments Pinecone=44; no GH; 7.0yrs total/5.8yrs ML India (OTW/60d notice)"
+CAND_0025046,61,0.573,"AI Specialist | JD=0.64 Career=0.75 Coh=0.46 Trust=0.31 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; no GH; 6.7yrs total/6.6yrs ML Gurgaon (90d notice)"
+CAND_0098217,62,0.5729,"ML Engineer | JD=0.26 Career=0.54 Coh=0.75 Trust=0.75 | current role: fine-tuning,PyTorch,Hugging Face; assessments Weights & Biases=48; GH 81; 6.4yrs total/6.3yrs ML Noida (OTW/45d notice)"
+CAND_0007631,63,0.5721,"AI Specialist | JD=0.64 Career=0.47 Coh=0.54 Trust=0.55 | current role: fine-tuning,PyTorch,Hugging Face; assessments PEFT=54; no GH; 5.2yrs total/5.2yrs ML Ahmedabad (OTW/45d notice/reloc)"
+CAND_0033445,64,0.5693,ML Engineer | JD=0.24 Career=0.64 Coh=0.75 Trust=0.55 | current role: PyTorch; assessments Semantic Search=85; no GH; 6.8yrs total/6.7yrs ML Ahmedabad (OTW/≤30d notice)
+CAND_0062009,65,0.5688,"Junior ML Engineer | JD=0.27 Career=0.51 Coh=0.88 Trust=0.70 | current role: fine-tuning,PyTorch,Hugging Face; assessments PyTorch=74; GH 65; 5.9yrs total/5.8yrs ML Bangalore (OTW/120d notice)"
+CAND_0054703,66,0.5679,"Computer Vision Engineer | JD=0.28 Career=0.57 Coh=0.80 Trust=0.57 | current role: fine-tuning,PyTorch,Hugging Face; assessments BentoML=61; no GH; 6.8yrs total/5.3yrs ML India (OTW/60d notice/reloc)"
+CAND_0021973,67,0.5669,ML Engineer | JD=0.25 Career=0.63 Coh=0.75 Trust=0.71 | current role: PyTorch; no assessments; GH 83; 5.1yrs total/5.0yrs ML India (OTW/120d notice)
+CAND_0043637,68,0.5648,"Junior ML Engineer | JD=0.26 Career=0.54 Coh=0.81 Trust=0.63 | current role: fine-tuning,PyTorch,Hugging Face; assessments Weights & Biases=80, Milvus=65; no GH; 5.5yrs total/1.8yrs ML Delhi (OTW/45d notice)"
+CAND_0089552,69,0.5646,"Machine Learning Engineer | JD=0.31 Career=0.59 Coh=0.75 Trust=0.72 | current role: RAG,embedding,Pinecone; assessments TensorFlow=89, Weaviate=78; GH 38; 6.0yrs total/5.9yrs ML Kolkata (120d notice/reloc)"
+CAND_0020877,70,0.5638,"Applied ML Engineer | JD=0.32 Career=0.48 Coh=0.75 Trust=0.83 | current role: semantic search,sentence-transformer,FAISS; assessments QLoRA=63; GH 74; 5.1yrs total/5.0yrs ML Gurgaon (60d notice/reloc)"
+CAND_0022614,71,0.5636,"Data Scientist | JD=0.26 Career=0.64 Coh=0.75 Trust=0.55 | current role: fine-tuning,PyTorch,Hugging Face; assessments PEFT=74; no GH; 6.0yrs total/5.9yrs ML Gurgaon (OTW/90d notice)"
+CAND_0027691,72,0.558,"NLP Engineer | JD=0.32 Career=0.43 Coh=0.79 Trust=0.73 | current role: MLflow; assessments LoRA=87, Weaviate=79; GH 58; 6.5yrs total/6.3yrs ML Pune (OTW/≤30d notice)"
+CAND_0060072,73,0.558,"Staff Machine Learning Engineer | JD=0.32 Career=0.51 Coh=0.78 Trust=0.76 | current role: LoRA,embedding,sentence-transformer; no assessments; GH 82; 5.7yrs total/5.7yrs ML India (90d notice/reloc)"
+CAND_0004131,74,0.5579,Junior ML Engineer | JD=0.22 Career=0.54 Coh=0.80 Trust=0.72 | current role: model deployment; assessments MLflow=58; GH 56; 6.8yrs total/6.7yrs ML India (OTW/120d notice/reloc)
+CAND_0000165,75,0.5578,"AI Specialist | JD=0.64 Career=0.35 Coh=0.46 Trust=0.85 | current role: PyTorch; assessments BentoML=80, Vector Search=74; GH 62; 6.8yrs total/6.7yrs ML (OTW/120d notice/reloc)"
+CAND_0074342,76,0.5577,Data Scientist | JD=0.27 Career=0.55 Coh=0.75 Trust=0.59 | current role: model deployment; no assessments; GH 25; 5.7yrs total/5.7yrs ML (OTW/≤30d notice/reloc)
+CAND_0029135,77,0.557,"AI Specialist | JD=0.66 Career=0.42 Coh=0.46 Trust=0.62 | current role: PyTorch; assessments Fine-tuning LLMs=83, BentoML=70; no GH; 5.8yrs total/5.7yrs ML Ahmedabad (OTW/60d notice/reloc)"
+CAND_0067201,78,0.556,"ML Engineer | JD=0.29 Career=0.61 Coh=0.75 Trust=0.73 | current role: fine-tuning,PyTorch,Hugging Face; assessments FAISS=84; GH 24; 6.0yrs total/5.9yrs ML (90d notice)"
+CAND_0044135,79,0.5555,"Computer Vision Engineer | JD=0.26 Career=0.58 Coh=0.83 Trust=0.53 | current role: fine-tuning,PyTorch,Hugging Face; assessments FAISS=73; no GH; 6.7yrs total/3.7yrs ML Ahmedabad (OTW/90d notice)"
+CAND_0007009,80,0.5551,"Recommendation Systems Engineer | JD=0.32 Career=0.64 Coh=0.56 Trust=0.62 | current role: RAG,embedding,Pinecone; no assessments; GH 69; 7.9yrs total/7.8yrs ML Noida (OTW/≤30d notice)"
+CAND_0033352,81,0.5549,"Computer Vision Engineer | JD=0.27 Career=0.61 Coh=0.75 Trust=0.57 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; no GH; 5.0yrs total/4.9yrs ML India (OTW/60d notice)"
+CAND_0032955,82,0.5547,Computer Vision Engineer | JD=0.27 Career=0.54 Coh=0.75 Trust=0.63 | current role: PyTorch; assessments Vector Search=47; GH 54; 5.2yrs total/5.0yrs ML India (OTW/60d notice/reloc)
+CAND_0049831,83,0.5546,"Computer Vision Engineer | JD=0.27 Career=0.47 Coh=0.80 Trust=0.81 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; GH 83; 5.4yrs total/1.5yrs ML (OTW/45d notice)"
+CAND_0010257,84,0.5537,"Senior Data Scientist | JD=0.30 Career=0.43 Coh=0.81 Trust=0.73 | current role: MLflow; assessments Milvus=82, MLflow=63; GH 46; 6.5yrs total/6.4yrs ML Noida (OTW/120d notice/reloc)"
+CAND_0031143,85,0.5536,ML Engineer | JD=0.16 Career=0.67 Coh=0.75 Trust=0.78 | current role: model deployment; assessments QLoRA=75; GH 76; 5.5yrs total/5.4yrs ML India (120d notice)
+CAND_0094025,86,0.5533,"Data Scientist | JD=0.15 Career=0.73 Coh=0.75 Trust=0.55 | current role: fine-tuning,PyTorch,Hugging Face; assessments Hugging Face Transformers=78, BentoML=44; no GH; 6.4yrs total/3.8yrs ML India (OTW/90d notice)"
+CAND_0052328,87,0.5531,"Recommendation Systems Engineer | JD=0.32 Career=0.62 Coh=0.46 Trust=0.75 | current role: RAG,embedding,Pinecone; assessments LoRA=85; GH 78; 6.5yrs total/6.4yrs ML Pune (OTW/≤30d notice)"
+CAND_0021486,88,0.553,"Computer Vision Engineer | JD=0.25 Career=0.61 Coh=0.75 Trust=0.64 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; GH 39; 6.4yrs total/6.3yrs ML Chennai (45d notice)"
+CAND_0089444,89,0.5527,"AI Specialist | JD=0.65 Career=0.61 Coh=0.46 Trust=0.64 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; GH 23; 4.5yrs total/4.4yrs ML India (OTW/90d notice); | experience gap (0.05)"
+CAND_0097079,90,0.5526,Computer Vision Engineer | JD=0.24 Career=0.47 Coh=0.83 Trust=0.69 | current role: PyTorch; no assessments; GH 63; 5.7yrs total/5.7yrs ML India (OTW/90d notice/reloc)
+CAND_0077261,91,0.5504,"AI Specialist | JD=0.65 Career=0.47 Coh=0.46 Trust=0.59 | current role: model deployment; assessments Hugging Face Transformers=78, BentoML=58; GH 38; 5.7yrs total/5.6yrs ML India (OTW/60d notice)"
+CAND_0053422,92,0.5495,"Data Scientist | JD=0.26 Career=0.68 Coh=0.75 Trust=0.40 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; GH 35; 6.8yrs total/6.8yrs ML India (OTW/45d notice)"
+CAND_0039983,93,0.5485,"Computer Vision Engineer | JD=0.23 Career=0.64 Coh=0.75 Trust=0.43 | current role: fine-tuning,PyTorch,Hugging Face; no assessments; GH 11; 6.6yrs total/6.5yrs ML Delhi (OTW/45d notice/reloc)"
+CAND_0040887,94,0.5484,"Machine Learning Engineer | JD=0.33 Career=0.60 Coh=0.79 Trust=0.76 | current role: semantic search,sentence-transformer,FAISS; assessments FAISS=71; GH 34; 4.7yrs total/4.6yrs ML (OTW/≤30d notice); | experience gap (0.05)"
+CAND_0069503,95,0.5484,Computer Vision Engineer | JD=0.27 Career=0.54 Coh=0.81 Trust=0.66 | current role: PyTorch; no assessments; GH 14; 5.4yrs total/5.3yrs ML India (OTW/120d notice)
+CAND_0002770,96,0.5482,AI Research Engineer | JD=0.52 Career=0.66 Coh=0.46 Trust=0.36 | current role: PyTorch; no assessments; GH 15; 5.7yrs total/5.6yrs ML India (OTW/120d notice/reloc)
+CAND_0081480,97,0.547,Computer Vision Engineer | JD=0.26 Career=0.40 Coh=0.83 Trust=0.79 | current role: model deployment; assessments Fine-tuning LLMs=77; GH 61; 5.6yrs total/5.6yrs ML Noida (OTW/60d notice)
+CAND_0075249,98,0.5467,"Applied ML Engineer | JD=0.32 Career=0.45 Coh=0.80 Trust=0.61 | current role: embedding,sentence-transformer,recommendation; assessments Milvus=78, Fine-tuning LLMs=58; GH 37; 6.2yrs total/6.2yrs ML Ahmedabad (OTW/45d notice)"
+CAND_0011707,99,0.5462,"Data Scientist | JD=0.26 Career=0.69 Coh=0.75 Trust=0.78 | current role: fine-tuning,PyTorch,Hugging Face; assessments Recommendation Systems=77; GH 64; 4.8yrs total/4.8yrs ML Ahmedabad (60d notice); | experience gap (0.05)"
+CAND_0086154,100,0.5457,Data Scientist | JD=0.22 Career=0.37 Coh=0.88 Trust=0.80 | current role: model deployment; no assessments; GH 53; 6.8yrs total/5.6yrs ML Ahmedabad (OTW/90d notice/reloc)

@@ -18,9 +18,6 @@ from fitrank.ranker import load_weights, rank_candidates
 from fitrank.reasoning import build_reasoning
 
 
-TRAP_IDS = {"CAND_0004989", "CAND_0000339"}
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Rank candidates for a job description")
     parser.add_argument("--candidates", default="data/candidates.jsonl")
@@ -40,9 +37,8 @@ def main() -> int:
         load_candidates(args.candidates, validate=False),
         role_profile,
         weights=weights,
-        top_n=args.top_n + 10,
+        top_n=args.top_n,
     )
-    ranked = [(c, comp, score) for c, comp, score in ranked if c.candidate_id not in TRAP_IDS]
     ranked = ranked[: args.top_n]
 
     output_path = Path(args.out)
@@ -52,7 +48,7 @@ def main() -> int:
     audit = {
         "runtime_seconds": round(time.time() - start, 2),
         "title_distribution": dict(Counter(item[0].profile.current_title for item in ranked)),
-        "known_traps_excluded": list(TRAP_IDS),
+        "known_traps_excluded": [],
         "honeypot_flags_in_shortlist": sum(1 for _, comp, _ in ranked if comp.is_honeypot),
         "score_histogram": {
             "min": min(item[2].final_score for item in ranked),
@@ -79,6 +75,7 @@ def main() -> int:
         [sys.executable, "validate_submission.py", str(output_path)],
         capture_output=True,
         text=True,
+        cwd=str(Path(__file__).resolve().parent),
     )
     print(result.stdout.strip() or result.stderr.strip())
     if result.returncode != 0:
@@ -95,20 +92,12 @@ def _write_submission_csv(path: Path, ranked) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["candidate_id", "rank", "score", "reasoning"])
-        raw_scores = [item[2].final_score for item in ranked]
-        max_score = max(raw_scores)
-        min_score = min(raw_scores)
-        span = max(max_score - min_score, 1e-9)
         for rank, (candidate, components, score_obj) in enumerate(ranked, start=1):
-            if len(ranked) == 1:
-                mapped = max_score
-            else:
-                mapped = max_score - (max_score - min_score) * ((rank - 1) / (len(ranked) - 1))
             writer.writerow(
                 [
                     candidate.candidate_id,
                     rank,
-                    round(mapped, 4),
+                    round(score_obj.final_score, 4),
                     build_reasoning(candidate, components),
                 ]
             )

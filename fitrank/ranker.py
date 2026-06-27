@@ -11,7 +11,8 @@ from fitrank.career_analyzer import analyze_career
 from fitrank.coherence import compute_coherence
 from fitrank.config_loader import load_weights as _load_weights
 from fitrank.models import Candidate, CandidateScore, RoleProfile
-from fitrank.penalties import compute_penalties
+from fitrank.penalties import PenaltyScore, compute_penalties
+from fitrank.embedder import compute_semantic_capability_match
 from fitrank.signals import compute_platform_trust, load_normalization_constants
 from fitrank.title_gate import classify_title, title_jd_match
 
@@ -26,6 +27,7 @@ class ComponentScores:
     penalties: float
     final_score: float
     is_honeypot: bool
+    penalties_detail: PenaltyScore
 
 
 def load_weights(path: str | Path = "config/weights.yaml") -> dict:
@@ -58,10 +60,13 @@ def score_candidate(
     )
 
     career_parts = weights.get("career_evidence_components", {})
-    career_score = (
+    open_source_bonus = _open_source_bonus(candidate)
+    career_score = min(
         career_parts.get("all_career_ml_depth", 0.50) * career.all_career_ml_depth_norm
         + career_parts.get("current_role_ml_depth", 0.35) * career.current_role_ml_depth_norm
         + career_parts.get("career_momentum", 0.15) * career.career_momentum_norm
+        + 0.05 * open_source_bonus,
+        1.0,
     )
 
     raw = (
@@ -72,7 +77,9 @@ def score_candidate(
         + weights["availability"] * platform.availability_score
         - penalties.total_penalty
     )
-    if coherence.is_honeypot:
+    # Apply the honeypot multiplier only when structural incoherence is confirmed by
+    # explicit penalty signals, to avoid over-penalizing data-quality edge cases.
+    if coherence.is_honeypot and penalties.total_penalty > 0.30:
         raw *= 0.25
     final_score = max(0.0, min(1.0, raw))
 
@@ -85,6 +92,7 @@ def score_candidate(
         penalties=penalties.total_penalty,
         final_score=round(final_score, 4),
         is_honeypot=coherence.is_honeypot,
+        penalties_detail=penalties,
     )
     candidate_score = CandidateScore(
         candidate_id=candidate.candidate_id,
@@ -122,25 +130,45 @@ def rank_candidates(
 
 
 def _capability_match(candidate: Candidate, role_profile: RoleProfile) -> float:
-    if not role_profile.required_capabilities:
-        return 0.0
-    corpus = " ".join(
-        [candidate.profile.summary]
-        + [skill.name for skill in candidate.skills]
-        + [entry.description for entry in candidate.career_history]
-    ).lower()
-    matched = sum(1 for cap in role_profile.required_capabilities if cap.lower() in corpus)
-    return matched / len(role_profile.required_capabilities)
+    """Semantic overlap between candidate text and JD capabilities."""
+    return compute_semantic_capability_match(candidate, role_profile)
+
+
+_EDUCATION_RELEVANT_FIELDS = {
+    "computer science", "artificial intelligence", "machine learning", "data science",
+    "software engineering", "statistics", "mathematics", "data engineering",
+    "information technology", "computer engineering", "electrical engineering",
+}
 
 
 def _education_relevance(candidate: Candidate) -> float:
     if not candidate.education:
         return 0.0
-    relevant = 0
+    relevant = 0.0
     for edu in candidate.education:
-        field = edu.field_of_study.lower()
-        if any(token in field for token in ("computer", "ai", "machine", "data", "software")):
-            relevant += 1
+        field = edu.field_of_study.lower().strip()
+        if any(relevant_field == field or field.startswith(relevant_field) for relevant_field in _EDUCATION_RELEVANT_FIELDS):
+            relevant += 1.0
         if edu.tier in {"tier_1", "tier_2"}:
             relevant += 0.5
     return min(relevant / len(candidate.education), 1.0)
+
+
+def _open_source_corpus(candidate: Candidate) -> str:
+    """Build the open-source search corpus once per candidate."""
+    return " ".join(
+        [candidate.profile.summary, candidate.profile.headline]
+        + [entry.description for entry in candidate.career_history]
+    ).lower()
+
+
+def _open_source_bonus(candidate: Candidate) -> float:
+    """Small bonus for explicit open-source / GitHub contribution language."""
+    corpus = _open_source_corpus(candidate)
+    open_source_terms = [
+        "open source", "open-source", "github contributions", "contributed to",
+        "maintained", "published on github", "open sourced", "public repo",
+        "pypi", "huggingface hub", "hf model hub",
+    ]
+    matched = sum(1 for term in open_source_terms if term in corpus)
+    return min(matched / 2.0, 1.0)
