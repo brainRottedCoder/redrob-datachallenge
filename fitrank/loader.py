@@ -77,7 +77,7 @@ def load_candidates(
         raise ValueError(f"Unsupported candidate file format: {source}")
 
 
-def _stream_jsonl(path: Path, validator: Draft7Validator) -> Iterator[Candidate]:
+def _stream_jsonl(path: Path, validator: Draft7Validator | None) -> Iterator[Candidate]:
     with path.open(encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, start=1):
             stripped = line.strip()
@@ -95,7 +95,7 @@ def _stream_jsonl(path: Path, validator: Draft7Validator) -> Iterator[Candidate]
                 )
 
 
-def _stream_json_array(path: Path, validator: Draft7Validator) -> Iterator[Candidate]:
+def _stream_json_array(path: Path, validator: Draft7Validator | None) -> Iterator[Candidate]:
     with path.open(encoding="utf-8") as handle:
         records = json.load(handle)
 

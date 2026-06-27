@@ -58,9 +58,17 @@ def _tokenize(text: str) -> list[str]:
     return re.findall(r"[a-z0-9/]+", text.lower())
 
 
-def _text_to_ngrams(text: str, n: int = 3) -> list[str]:
-    tokens = _tokenize(text)
-    return [" ".join(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
+def _build_ngram_sets(tokens: list[str]) -> tuple[set[str], set[str]]:
+    """Build 2-gram and 3-gram sets in a single pass over tokens."""
+    if len(tokens) < 2:
+        return set(), set()
+    bigrams = {" ".join(tokens[i : i + 2]) for i in range(len(tokens) - 1)}
+    trigrams = (
+        {" ".join(tokens[i : i + 3]) for i in range(len(tokens) - 2)}
+        if len(tokens) >= 3
+        else set()
+    )
+    return bigrams, trigrams
 
 
 def _candidate_text(candidate: Candidate) -> str:
@@ -81,8 +89,10 @@ def _capability_vector(text: str, capabilities: list[str]) -> dict[str, float]:
     """Return a sparse vector of capability relevance scores for the text."""
     vector: dict[str, float] = {}
     text_lower = text.lower()
-    tokens = set(_tokenize(text_lower))
-    ngrams = set(_text_to_ngrams(text_lower, 2)) | set(_text_to_ngrams(text_lower, 3))
+    tokens = _tokenize(text_lower)
+    token_set = set(tokens)
+    bigrams, trigrams = _build_ngram_sets(tokens)
+    ngrams = bigrams | trigrams
 
     for cap in capabilities:
         if cap not in CAPABILITY_VOCABULARY:
@@ -99,7 +109,7 @@ def _capability_vector(text: str, capabilities: list[str]) -> dict[str, float]:
                 if term in ngrams:
                     score += 1.0
             else:
-                if term in tokens:
+                if term in token_set:
                     score += 1.0
         if score > 0:
             vector[cap] = min(score, 3.0)  # Cap per-capability contribution.

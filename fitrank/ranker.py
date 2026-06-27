@@ -12,7 +12,11 @@ from fitrank.coherence import compute_coherence
 from fitrank.config_loader import load_weights as _load_weights
 from fitrank.models import Candidate, CandidateScore, RoleProfile
 from fitrank.penalties import PenaltyScore, compute_penalties
-from fitrank.embedder import compute_semantic_capability_match
+from fitrank.embedder import (
+    compute_semantic_capability_match,
+    load_candidate_vectors,
+    semantic_match_from_precomputed,
+)
 from fitrank.signals import compute_platform_trust, load_normalization_constants
 from fitrank.title_gate import classify_title, title_jd_match
 
@@ -40,6 +44,7 @@ def score_candidate(
     role_profile: RoleProfile,
     weights: dict | None = None,
     norms: dict[str, float] | None = None,
+    capability_vectors: dict[str, dict[str, float]] | None = None,
 ) -> tuple[ComponentScores, CandidateScore]:
     weights = weights or load_weights()
     norms = norms or load_normalization_constants()
@@ -51,7 +56,7 @@ def score_candidate(
 
     jd_parts = weights.get("jd_fit_components", {})
     title_match = title_jd_match(candidate.profile.current_title, role_profile)
-    capability_match = _capability_match(candidate, role_profile)
+    capability_match = _capability_match(candidate, role_profile, capability_vectors)
     education = _education_relevance(candidate)
     jd_fit = (
         jd_parts.get("title_jd_match", 0.40) * title_match
@@ -115,12 +120,15 @@ def rank_candidates(
     weights: dict | None = None,
     norms: dict[str, float] | None = None,
     top_n: int = 100,
+    capability_vectors: dict[str, dict[str, float]] | None = None,
 ) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
     weights = weights or load_weights()
     norms = norms or load_normalization_constants()
     heap: list[tuple[tuple[float, str], Candidate, ComponentScores, CandidateScore]] = []
     for candidate in candidates:
-        components, candidate_score = score_candidate(candidate, role_profile, weights, norms)
+        components, candidate_score = score_candidate(
+            candidate, role_profile, weights, norms, capability_vectors
+        )
         key = (candidate_score.final_score, candidate.candidate_id)
         if len(heap) < top_n:
             heapq.heappush(heap, (key, candidate, components, candidate_score))
@@ -131,9 +139,28 @@ def rank_candidates(
     return [(item[1], item[2], item[3]) for item in ranked]
 
 
-def _capability_match(candidate: Candidate, role_profile: RoleProfile) -> float:
+def _capability_match(
+    candidate: Candidate,
+    role_profile: RoleProfile,
+    capability_vectors: dict[str, dict[str, float]] | None = None,
+) -> float:
     """Semantic overlap between candidate text and JD capabilities."""
+    if capability_vectors is not None:
+        return semantic_match_from_precomputed(
+            candidate.candidate_id, role_profile, capability_vectors
+        )
     return compute_semantic_capability_match(candidate, role_profile)
+
+
+DEFAULT_VECTORS_PATH = Path("outputs/candidate_vectors.jsonl")
+
+
+def load_capability_vectors(path: str | Path | None = None) -> dict[str, dict[str, float]] | None:
+    """Load pre-computed vectors when the cache file exists."""
+    source = Path(path) if path else DEFAULT_VECTORS_PATH
+    if not source.exists():
+        return None
+    return load_candidate_vectors(source)
 
 
 _EDUCATION_RELEVANT_FIELDS = {

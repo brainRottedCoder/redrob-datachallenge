@@ -1,7 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-# Read hook input from stdin (Cursor passes agent stop context)
-$null = [Console]::In.ReadToEnd()
+# Cursor may pass agent stop context on stdin; this hook does not consume it.
 
 $projectRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $queuePath = Join-Path $projectRoot ".cursor/prompt-queue.json"

@@ -1,10 +1,13 @@
-.PHONY: install test run validate deck
+.PHONY: install test run validate deck precompute
 
 install:
 	pip install -r requirements.txt
 
 test:
 	pytest tests/ -v
+
+precompute:
+	python scripts/precompute_embeddings.py
 
 run:
 	python rank.py --candidates data/candidates.jsonl --jd data/job_description.txt --out outputs/submission.csv

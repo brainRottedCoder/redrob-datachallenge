@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from fitrank.career_analyzer import CareerEvidence
@@ -14,6 +15,11 @@ ML_SKILL_KEYWORDS = {
     "xgboost", "keras", "jax", "huggingface", "fine-tuning", "embeddings",
     "bert", "gpt", "faiss", "milvus", "langchain", "mlflow", "wandb",
 }
+
+_ML_SKILL_PATTERN = re.compile(
+    "|".join(re.escape(keyword) for keyword in sorted(ML_SKILL_KEYWORDS, key=len, reverse=True)),
+    re.IGNORECASE,
+)
 
 # Titles that are ML_AI in domain but should not receive full confirmation if
 # the career lacks the NLP/IR focus required by the Senior AI Engineer JD.
@@ -169,5 +175,4 @@ def skill_career_alignment(candidate: Candidate) -> float:
 
 
 def _is_ml_skill(name: str) -> bool:
-    lowered = name.lower()
-    return any(keyword in lowered for keyword in ML_SKILL_KEYWORDS)
+    return bool(_ML_SKILL_PATTERN.search(name))

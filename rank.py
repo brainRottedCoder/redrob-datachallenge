@@ -15,7 +15,7 @@ from pathlib import Path
 from fitrank.calibrator import calibrate_scores
 from fitrank.jd_parser import parse_jd, save_role_profile
 from fitrank.loader import load_candidates
-from fitrank.ranker import load_weights, rank_candidates
+from fitrank.ranker import load_capability_vectors, load_weights, rank_candidates
 from fitrank.reasoning import build_reasoning
 
 
@@ -35,11 +35,13 @@ def main() -> int:
     save_role_profile(role_profile)
 
     weights = load_weights(args.weights)
+    capability_vectors = load_capability_vectors()
     ranked = rank_candidates(
         load_candidates(args.candidates, validate=False),
         role_profile,
         weights=weights,
         top_n=args.top_n,
+        capability_vectors=capability_vectors,
     )
     ranked = ranked[: args.top_n]
 
