@@ -18,3 +18,20 @@ __MACOSX/
 
 # Original challenge pack folder (duplicated in data/ and docs/)
 [PUB]*/
+
+# Training artifacts (regenerate with make train)
+outputs/training_features.csv
+outputs/training_report.json
+
+# Semantic embedding artifacts (regenerate with make precompute)
+outputs/candidate_embeddings.npz
+outputs/candidate_embedding_ids.json
+outputs/embedding_manifest.json
+outputs/candidate_vectors.jsonl
+
+# LLM reasoning cache (regenerate with make precompute-reasoning)
+outputs/reasoning_cache.jsonl
+
+models/*
+!models/.gitkeep
+!models/fitrank_lgb.txt

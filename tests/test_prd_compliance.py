@@ -131,6 +131,13 @@ class TestSubmissionQuality:
         scores = [float(row["score"]) for row in csv.DictReader(submission_path.open(encoding="utf-8"))]
         assert all(scores[i] >= scores[i + 1] for i in range(len(scores) - 1))
 
+    def test_score_band_spread(self, submission_path: Path):
+        if not submission_path.exists():
+            pytest.skip("submission missing")
+        scores = [float(row["score"]) for row in csv.DictReader(submission_path.open(encoding="utf-8"))]
+        assert scores[0] >= 0.90
+        assert scores[-1] <= 0.60
+
 
 class TestNonFunctionalRequirements:
     def test_no_network_imports_in_fitrank(self, project_root: Path):
@@ -166,17 +173,33 @@ class TestNonFunctionalRequirements:
         audit = json.loads(audit_path.read_text(encoding="utf-8"))
         assert audit["runtime_seconds"] < 300
 
-    def test_deterministic_sample_ranking(self):
+    def test_deterministic_sample_ranking(self, jd_text):
         from fitrank.jd_parser import parse_jd
         from fitrank.loader import load_sample
         from fitrank.ranker import rank_candidates
 
-        role = parse_jd((ROOT / "data" / "job_description.txt").read_text(encoding="utf-8"))
-        ranked_a = rank_candidates(load_sample(), role, top_n=20)
-        ranked_b = rank_candidates(load_sample(), role, top_n=20)
-        ids_a = [item[0].candidate_id for item in ranked_a]
-        ids_b = [item[0].candidate_id for item in ranked_b]
-        assert ids_a == ids_b
+        role = parse_jd(jd_text)
+        for mode in ("heuristic", "auto"):
+            ranked_a = rank_candidates(load_sample(), role, top_n=20, ranking_mode=mode, jd_text=jd_text)
+            ranked_b = rank_candidates(load_sample(), role, top_n=20, ranking_mode=mode, jd_text=jd_text)
+            ids_a = [item[0].candidate_id for item in ranked_a]
+            ids_b = [item[0].candidate_id for item in ranked_b]
+            assert ids_a == ids_b
+
+    def test_learned_submission_valid(self, submission_path: Path):
+        from fitrank.learned_ranker import is_model_available
+
+        if not is_model_available():
+            pytest.skip("trained model not present")
+        if not submission_path.exists():
+            pytest.skip("submission missing")
+        result = subprocess.run(
+            [sys.executable, "validate_submission.py", str(submission_path)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
 
     def test_all_phase_test_files_exist(self, project_root: Path):
         for phase in range(1, 11):

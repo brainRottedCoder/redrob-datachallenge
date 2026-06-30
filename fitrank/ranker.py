@@ -1,42 +1,85 @@
-"""Score aggregation and ranking."""
+"""Score aggregation, learned-model scoring, and ranking."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 import heapq
+import numpy as np
 
-from fitrank.career_analyzer import analyze_career
-from fitrank.coherence import compute_coherence
+from fitrank.component_scores import ComponentScores
 from fitrank.config_loader import load_weights as _load_weights
-from fitrank.models import Candidate, CandidateScore, RoleProfile
-from fitrank.penalties import PenaltyScore, compute_penalties
 from fitrank.embedder import (
-    compute_semantic_capability_match,
-    load_candidate_vectors,
-    semantic_match_from_precomputed,
+    batch_encode_candidates,
+    encode_jd,
+    load_candidate_embeddings,
 )
-from fitrank.signals import compute_platform_trust, load_normalization_constants
-from fitrank.title_gate import classify_title, title_jd_match
+from fitrank.features import extract_ranking_features
+from fitrank.learned_ranker import DEFAULT_MODEL_PATH, load_model, predict_score, _model_feature_count_matches
+from fitrank.models import Candidate, CandidateScore, RoleProfile
+from fitrank.signals import load_normalization_constants
 
-
-@dataclass
-class ComponentScores:
-    jd_fit: float
-    career_evidence: float
-    coherence: float
-    platform_trust: float
-    availability: float
-    penalties: float
-    final_score: float
-    is_honeypot: bool
-    penalties_detail: PenaltyScore
-    ml_tenure_years: float = 0.0
+__all__ = [
+    "ComponentScores",
+    "load_weights",
+    "score_candidate",
+    "rank_candidates",
+    "load_capability_vectors",
+    "load_candidate_embeddings",
+    "calibrate_scores",
+]
 
 
 def load_weights(path: str | Path = "config/weights.yaml") -> dict:
     return _load_weights(path)
+
+
+def _resolve_final_score(
+    features,
+    components: ComponentScores,
+    heuristic_score: float,
+    ranking_mode: str,
+    model_path: str | Path | None,
+) -> float:
+    if ranking_mode == "heuristic":
+        return heuristic_score
+
+    model = load_model(model_path)
+    if ranking_mode == "learned" and model is None:
+        raise FileNotFoundError(
+            "Learned ranking mode requires models/fitrank_lgb.txt. "
+            "Run: python scripts/train_learned_ranker.py"
+        )
+    if ranking_mode in ("learned", "auto") and model is not None:
+        if _model_feature_count_matches(model, features):
+            return predict_score(model, features, heuristic_score)
+        if ranking_mode == "learned":
+            raise ValueError(
+                "Learned model feature count does not match current feature vector. "
+                "Retrain with: python scripts/train_learned_ranker.py"
+            )
+    return heuristic_score
+
+
+def _prepare_embedding_context(
+    candidates,
+    jd_text: str | None,
+    jd_embedding: np.ndarray | None,
+    candidate_embeddings: dict[str, np.ndarray] | None,
+) -> tuple[Iterable[Candidate], np.ndarray | None, dict[str, np.ndarray] | None]:
+    resolved_jd_embedding = jd_embedding
+    if resolved_jd_embedding is None and jd_text:
+        resolved_jd_embedding = encode_jd(jd_text)
+
+    resolved_candidate_embeddings = candidate_embeddings
+    candidate_list: list[Candidate] | Iterable[Candidate] = candidates
+    if resolved_candidate_embeddings is None and resolved_jd_embedding is not None and jd_text:
+        candidate_list = list(candidates)
+        resolved_candidate_embeddings = batch_encode_candidates(candidate_list)
+
+    return candidate_list, resolved_jd_embedding, resolved_candidate_embeddings
 
 
 def score_candidate(
@@ -44,62 +87,37 @@ def score_candidate(
     role_profile: RoleProfile,
     weights: dict | None = None,
     norms: dict[str, float] | None = None,
-    capability_vectors: dict[str, dict[str, float]] | None = None,
+    jd_embedding: np.ndarray | None = None,
+    candidate_embeddings: dict[str, np.ndarray] | None = None,
+    ranking_mode: str = "auto",
+    model_path: str | Path | None = None,
 ) -> tuple[ComponentScores, CandidateScore]:
     weights = weights or load_weights()
     norms = norms or load_normalization_constants()
-    career = analyze_career(candidate)
-    title_domain = classify_title(candidate.profile.current_title)
-    coherence = compute_coherence(candidate, career, title_domain)
-    penalties = compute_penalties(candidate, career, coherence, role_profile, weights)
-    platform = compute_platform_trust(candidate, role_profile, weights=weights, norms=norms)
 
-    jd_parts = weights.get("jd_fit_components", {})
-    title_match = title_jd_match(candidate.profile.current_title, role_profile)
-    capability_match = _capability_match(candidate, role_profile, capability_vectors)
-    education = _education_relevance(candidate)
-    jd_fit = (
-        jd_parts.get("title_jd_match", 0.40) * title_match
-        + jd_parts.get("capability_match", 0.30) * capability_match
-        + jd_parts.get("assessment_jd_overlap", 0.20) * platform.assessment_jd_overlap
-        + jd_parts.get("education_relevance", 0.10) * education
+    features, components, heuristic_score = extract_ranking_features(
+        candidate,
+        role_profile,
+        weights=weights,
+        norms=norms,
+        jd_embedding=jd_embedding,
+        candidate_embeddings=candidate_embeddings,
     )
-
-    career_parts = weights.get("career_evidence_components", {})
-    open_source_bonus = _open_source_bonus(candidate)
-    career_score = min(
-        career_parts.get("all_career_ml_depth", 0.50) * career.all_career_ml_depth_norm
-        + career_parts.get("current_role_ml_depth", 0.35) * career.current_role_ml_depth_norm
-        + career_parts.get("career_momentum", 0.15) * career.career_momentum_norm
-        + 0.05 * open_source_bonus,
-        1.0,
+    final_score = _resolve_final_score(
+        features, components, heuristic_score, ranking_mode, model_path
     )
-
-    raw = (
-        weights["jd_fit"] * jd_fit
-        + weights["career_evidence"] * career_score
-        + weights["coherence"] * coherence.coherence_score
-        + weights["platform_trust"] * platform.platform_trust
-        + weights["availability"] * platform.availability_score
-        - penalties.total_penalty
-    )
-    # Apply the honeypot multiplier only when structural incoherence is confirmed by
-    # explicit penalty signals, to avoid over-penalizing data-quality edge cases.
-    if coherence.is_honeypot and penalties.total_penalty > 0.30:
-        raw *= 0.25
-    final_score = max(0.0, min(1.0, raw))
 
     components = ComponentScores(
-        jd_fit=round(jd_fit, 4),
-        career_evidence=round(career_score, 4),
-        coherence=coherence.coherence_score,
-        platform_trust=platform.platform_trust,
-        availability=platform.availability_score,
-        penalties=penalties.total_penalty,
+        jd_fit=components.jd_fit,
+        career_evidence=components.career_evidence,
+        coherence=components.coherence,
+        platform_trust=components.platform_trust,
+        availability=components.availability,
+        penalties=components.penalties,
         final_score=round(final_score, 4),
-        is_honeypot=coherence.is_honeypot,
-        penalties_detail=penalties,
-        ml_tenure_years=career.years_of_ml_experience,
+        is_honeypot=components.is_honeypot,
+        penalties_detail=components.penalties_detail,
+        ml_tenure_years=components.ml_tenure_years,
     )
     candidate_score = CandidateScore(
         candidate_id=candidate.candidate_id,
@@ -120,14 +138,32 @@ def rank_candidates(
     weights: dict | None = None,
     norms: dict[str, float] | None = None,
     top_n: int = 100,
-    capability_vectors: dict[str, dict[str, float]] | None = None,
+    jd_text: str | None = None,
+    jd_embedding: np.ndarray | None = None,
+    candidate_embeddings: dict[str, np.ndarray] | None = None,
+    ranking_mode: str = "auto",
+    model_path: str | Path | None = None,
 ) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
     weights = weights or load_weights()
     norms = norms or load_normalization_constants()
+    candidates, jd_embedding, candidate_embeddings = _prepare_embedding_context(
+        candidates,
+        jd_text,
+        jd_embedding,
+        candidate_embeddings,
+    )
+
     heap: list[tuple[tuple[float, str], Candidate, ComponentScores, CandidateScore]] = []
     for candidate in candidates:
         components, candidate_score = score_candidate(
-            candidate, role_profile, weights, norms, capability_vectors
+            candidate,
+            role_profile,
+            weights,
+            norms,
+            jd_embedding=jd_embedding,
+            candidate_embeddings=candidate_embeddings,
+            ranking_mode=ranking_mode,
+            model_path=model_path,
         )
         key = (candidate_score.final_score, candidate.candidate_id)
         if len(heap) < top_n:
@@ -139,74 +175,55 @@ def rank_candidates(
     return [(item[1], item[2], item[3]) for item in ranked]
 
 
-def _capability_match(
-    candidate: Candidate,
-    role_profile: RoleProfile,
-    capability_vectors: dict[str, dict[str, float]] | None = None,
-) -> float:
-    """Semantic overlap between candidate text and JD capabilities."""
-    if capability_vectors is not None:
-        return semantic_match_from_precomputed(
-            candidate.candidate_id, role_profile, capability_vectors
-        )
-    return compute_semantic_capability_match(candidate, role_profile)
+DEFAULT_EMBEDDINGS_PATH = Path("outputs/candidate_embeddings.npz")
+DEFAULT_IDS_PATH = Path("outputs/candidate_embedding_ids.json")
 
 
-DEFAULT_VECTORS_PATH = Path("outputs/candidate_vectors.jsonl")
+def load_candidate_embeddings_cache(
+    embeddings_path: str | Path | None = None,
+    ids_path: str | Path | None = None,
+) -> dict[str, np.ndarray] | None:
+    """Load pre-computed dense embeddings when cache files exist."""
+    return load_candidate_embeddings(
+        embeddings_path or DEFAULT_EMBEDDINGS_PATH,
+        ids_path or DEFAULT_IDS_PATH,
+    )
 
 
-def load_capability_vectors(path: str | Path | None = None) -> dict[str, dict[str, float]] | None:
-    """Load pre-computed vectors when the cache file exists."""
-    source = Path(path) if path else DEFAULT_VECTORS_PATH
-    if not source.exists():
-        return None
-    return load_candidate_vectors(source)
+def load_capability_vectors(path: str | Path | None = None) -> dict[str, np.ndarray] | None:
+    """Backward-compatible loader for pre-computed candidate embeddings."""
+    if path is not None:
+        ids_path = Path(path).with_name("candidate_embedding_ids.json")
+        return load_candidate_embeddings(path, ids_path)
+    return load_candidate_embeddings_cache()
 
 
-_EDUCATION_RELEVANT_FIELDS = {
-    "computer science", "artificial intelligence", "machine learning", "data science",
-    "software engineering", "statistics", "mathematics", "data engineering",
-    "information technology", "computer engineering", "electrical engineering",
-}
+def calibrate_scores(
+    ranked: list[tuple[Candidate, ComponentScores, CandidateScore]],
+    low: float = 0.05,
+    high: float = 0.95,
+) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
+    """Spread top-N scores to a wider range for better discrimination.
 
+    Uses a percentile-based linear mapping so the top candidate is near ``high``
+    and the bottom of the shortlist is near ``low``. Preserves ranking order.
+    """
+    if not ranked:
+        return ranked
 
-def _education_relevance(candidate: Candidate) -> float:
-    if not candidate.education:
-        return 0.0
-    relevant = 0.0
-    for edu in candidate.education:
-        field = edu.field_of_study.lower().strip()
-        if any(relevant_field == field or field.startswith(relevant_field) for relevant_field in _EDUCATION_RELEVANT_FIELDS):
-            relevant += 1.0
-        if edu.tier in {"tier_1", "tier_2"}:
-            relevant += 0.5
-    return min(relevant / len(candidate.education), 1.0)
+    scores = [item[2].final_score for item in ranked]
+    min_score = min(scores)
+    max_score = max(scores)
+    span = max_score - min_score
 
+    if span == 0:
+        calibrated = [low + (high - low) / 2.0] * len(scores)
+    else:
+        calibrated = [low + (high - low) * (s - min_score) / span for s in scores]
 
-def _open_source_corpus(candidate: Candidate) -> str:
-    """Build the open-source search corpus once per candidate, deduplicating sentences."""
-    seen: set[str] = set()
-    parts: list[str] = []
-    for text in [
-        candidate.profile.summary,
-        candidate.profile.headline,
-        *[entry.description for entry in candidate.career_history],
-    ]:
-        for sentence in text.split("."):
-            key = sentence.strip().lower()[:80]
-            if key and key not in seen:
-                seen.add(key)
-                parts.append(sentence)
-    return " ".join(parts).lower()
-
-
-def _open_source_bonus(candidate: Candidate) -> float:
-    """Small bonus for explicit open-source / GitHub contribution language."""
-    corpus = _open_source_corpus(candidate)
-    open_source_terms = [
-        "open source", "open-source", "github contributions", "contributed to",
-        "maintained", "published on github", "open sourced", "public repo",
-        "pypi", "huggingface hub", "hf model hub",
-    ]
-    matched = sum(1 for term in open_source_terms if term in corpus)
-    return min(matched / 2.0, 1.0)
+    result: list[tuple[Candidate, ComponentScores, CandidateScore]] = []
+    for (candidate, components, score_obj), new_score in zip(ranked, calibrated, strict=True):
+        score_obj.final_score = round(new_score, 4)
+        components.final_score = score_obj.final_score
+        result.append((candidate, components, score_obj))
+    return result

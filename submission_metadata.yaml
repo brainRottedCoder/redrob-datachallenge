@@ -2,8 +2,9 @@ team_name: "FitRank"
 participants: []
 repository_url: "https://github.com/brainRottedCoder/redrob-datachallenge"
 compute_environment: "Local CPU, Python 3.11+"
-ai_tools_used: ["Cursor"]
-methodology_summary: "Profile coherence-first ranking with career evidence, skill trust, and Redrob signals."
+ai_tools_used: ["Cursor", "Qwen2-1.5B-Instruct (optional local reasoning)"]
+methodology_summary: "Heuristic feature extraction (coherence, career evidence, skill trust, Redrob signals) plus offline-trained LightGBM binary ranker with pseudo-labels; heuristic fallback when model absent. Optional local GGUF model (llama-cpp-python) generates natural-language reasoning for top-100 only, with JSONL cache and template fallback."
 declarations:
   original_work: true
   external_api_calls_during_ranking: false
+pre_computation_required: true
