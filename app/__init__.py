@@ -1,0 +1,1 @@
+"""FitRank Streamlit demo package."""

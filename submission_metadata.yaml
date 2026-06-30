@@ -1,10 +1,15 @@
-team_name: "FitRank"
-participants: []
+team_name: "Grey Matter"
+participants:
+  - name: "Shubh Varshney"
+    role: "Team Leader"
+  - name: "Vedant Gupta"
+    role: "Team Member"
 repository_url: "https://github.com/brainRottedCoder/redrob-datachallenge"
-compute_environment: "Local CPU, Python 3.11+"
+compute_environment: "Local CPU, Python 3.11+, 16 GB RAM"
 ai_tools_used: ["Cursor", "Qwen2-1.5B-Instruct (optional local reasoning)"]
-methodology_summary: "Heuristic feature extraction (coherence, career evidence, skill trust, Redrob signals) plus offline-trained LightGBM binary ranker with pseudo-labels; heuristic fallback when model absent. Optional local GGUF model (llama-cpp-python) generates natural-language reasoning for top-100 only, with JSONL cache and template fallback."
+methodology_summary: "FitRank — heuristic feature extraction (coherence, career evidence, skill trust, Redrob signals) plus offline-trained LightGBM binary ranker with pseudo-labels; heuristic fallback when model absent. Dense semantic embeddings pre-computed offline (all-MiniLM-L6-v2). Optional local GGUF model generates natural-language reasoning for top-100 only."
 declarations:
   original_work: true
   external_api_calls_during_ranking: false
 pre_computation_required: true
+reproduce_command: "make install && make download-model && make precompute && make train && make run && make validate"

@@ -360,19 +360,23 @@ def test_assessment_overlap_low_score_excluded():
 
 def test_cv_without_nlp_gets_reduced_confirmation():
     from fitrank.coherence import title_domain_confirmation_score
+    from fitrank.jd_parser import parse_jd
 
+    nlp_role = parse_jd("Senior NLP Engineer. Retrieval, ranking, transformers, RAG, embeddings.")
     candidate = _candidate(
         title="Computer Vision Engineer",
         history=[_entry(description="object detection using YOLO and OpenCV for autonomous driving")],
     )
     career = CareerEvidence(3, 2, 0.0, "ml_work", 0)
-    score = title_domain_confirmation_score(candidate, TitleDomain.ML_AI, career)
+    score = title_domain_confirmation_score(candidate, TitleDomain.ML_AI, career, nlp_role)
     assert score == pytest.approx(0.3)
 
 
 def test_cv_with_nlp_gets_full_confirmation():
     from fitrank.coherence import title_domain_confirmation_score
+    from fitrank.jd_parser import parse_jd
 
+    nlp_role = parse_jd("Senior NLP Engineer. Retrieval, ranking, transformers, RAG, embeddings.")
     candidate = _candidate(
         title="Computer Vision Engineer",
         history=[
@@ -383,7 +387,21 @@ def test_cv_with_nlp_gets_full_confirmation():
         ],
     )
     career = CareerEvidence(6, 4, 0.0, "ml_work", 0)
-    score = title_domain_confirmation_score(candidate, TitleDomain.ML_AI, career)
+    score = title_domain_confirmation_score(candidate, TitleDomain.ML_AI, career, nlp_role)
+    assert score == pytest.approx(1.0)
+
+
+def test_cv_jd_gives_full_confirmation_without_nlp_evidence():
+    from fitrank.coherence import title_domain_confirmation_score
+    from fitrank.jd_parser import parse_jd
+
+    cv_role = parse_jd("Computer Vision Engineer. Object detection, OpenCV, CNN, YOLO.")
+    candidate = _candidate(
+        title="Computer Vision Engineer",
+        history=[_entry(description="object detection using YOLO and OpenCV")],
+    )
+    career = CareerEvidence(3, 2, 0.0, "ml_work", 0)
+    score = title_domain_confirmation_score(candidate, TitleDomain.ML_AI, career, cv_role)
     assert score == pytest.approx(1.0)
 
 

@@ -70,12 +70,16 @@ def _prepare_embedding_context(
     candidate_embeddings: dict[str, np.ndarray] | None,
 ) -> tuple[Iterable[Candidate], np.ndarray | None, dict[str, np.ndarray] | None]:
     resolved_jd_embedding = jd_embedding
-    if resolved_jd_embedding is None and jd_text:
-        resolved_jd_embedding = encode_jd(jd_text)
-
     resolved_candidate_embeddings = candidate_embeddings
     candidate_list: list[Candidate] | Iterable[Candidate] = candidates
+
+    if resolved_candidate_embeddings is not None and resolved_jd_embedding is None and jd_text:
+        # Only pay the cost of dense JD encoding when we actually have pre-computed
+        # candidate embeddings to match against.
+        resolved_jd_embedding = encode_jd(jd_text)
+
     if resolved_candidate_embeddings is None and resolved_jd_embedding is not None and jd_text:
+        # Fallback only when both JD and candidate embeddings are available.
         candidate_list = list(candidates)
         resolved_candidate_embeddings = batch_encode_candidates(candidate_list)
 
@@ -175,8 +179,8 @@ def rank_candidates(
     return [(item[1], item[2], item[3]) for item in ranked]
 
 
-DEFAULT_EMBEDDINGS_PATH = Path("outputs/candidate_embeddings.npz")
-DEFAULT_IDS_PATH = Path("outputs/candidate_embedding_ids.json")
+DEFAULT_EMBEDDINGS_PATH = Path("outputs/candidate_embeddings.npy")
+DEFAULT_IDS_PATH = Path("outputs/candidate_ids.json")
 
 
 def load_candidate_embeddings_cache(

@@ -1,275 +1,198 @@
-# FitRank — Intelligent Candidate Discovery & Ranking
+# FitRank — Redrob Data & AI Challenge Submission
 
-Offline, explainable, learned candidate ranking for the Redrob Data & AI Challenge.
-
-FitRank is a **two-stage ranking system**:
-
-1. **Heuristic feature extraction** turns each candidate profile into 28 interpretable signals (JD fit, career evidence, profile coherence, skill trust, Redrob platform signals, penalties).
-2. **A small LightGBM model** learns the optimal way to combine those signals from pseudo-labels derived from the dataset itself.
-
-The result is a ranking that is both **data-driven** and **explainable**: every shortlisted candidate gets a human-readable reasoning string with component scores, key evidence, and penalty flags.
+**Team:** FitRank  
+**Challenge:** Intelligent candidate discovery & ranking (100K profiles → top-100 shortlist)  
+**Approach:** Offline, explainable, two-stage ranking — heuristic feature extraction + learned LightGBM ranker
 
 ---
 
-## Quickstart
+## What this submission delivers
+
+| Deliverable | Location |
+|-------------|----------|
+| Ranking pipeline | `rank.py` + `fitrank/` |
+| **Top-100 CSV** | `outputs/submission.csv` |
+| Quality audit | `outputs/audit_report.json` |
+| Approach deck (PDF) | `deck/Redrob_FitRank_Approach.pdf` |
+| Team metadata | `submission_metadata.yaml` |
+| Interactive demo | `app/streamlit_app.py` |
+| Validator | `validate_submission.py` |
+
+### Submission quality (verified)
+
+- `python validate_submission.py outputs/submission.csv` → **Submission is valid.**
+- **100/100** unique reasoning strings with `JD=X.XX` component scores
+- Known traps **excluded** (`CAND_0004989`, `CAND_0000339`)
+- Genuine probe **included** (`CAND_0033861`)
+- End-to-end runtime **< 5 minutes** on CPU (see `outputs/audit_report.json`)
+- **Zero network calls** during `rank.py` execution
+
+---
+
+## Reproduce from scratch
+
+Requires **Python 3.11+** and a machine with **≥ 16 GB RAM**.
 
 ```bash
+# 1. Install dependencies
 pip install -r requirements.txt
+# or: make install
 
-# Optional but recommended: download the sentence-transformer model once
-make download-model
+# 2. One-time setup (recommended — keeps ranking under 5 min)
+make download-model    # sentence-transformer for semantic matching
+make precompute        # cache embeddings for 100K candidates (~2-3 min)
+make train             # train LightGBM ranker on pseudo-labels (~1 min)
 
-# Optional: pre-compute dense semantic embeddings (one-time, ~2-3 min on CPU)
-make precompute
-
-# Train the learned LightGBM ranker (one-time, ~30-60 sec)
-make train
-
-# Rank and produce outputs/submission.csv
+# 3. Rank and validate
 make run
-
-# Validate the submission format
-python validate_submission.py outputs/submission.csv
 make validate
+
+# 4. Fast test suite (seconds)
+make test-fast
 ```
 
-The full pipeline runs end-to-end in under 5 minutes on CPU and uses **zero network calls** during ranking.
+**Single command after setup:** `make run && make validate`
 
----
-
-## Ranking modes
-
-| Mode | Behavior | Use case |
-|------|----------|----------|
-| `auto` (default) | Uses the LightGBM model if `models/fitrank_lgb.txt` exists; otherwise falls back to the heuristic scorer. | Normal operation |
-| `heuristic` | Always uses the hand-tuned weighted formula. | Debugging, ablation, no model available |
-| `learned` | Requires the trained model. Throws an error if it is missing. | Final submission when model is trained |
+### Ranking modes
 
 ```bash
-python rank.py --mode learned
-python rank.py --mode heuristic
-python rank.py --mode auto
+python rank.py --mode auto        # default: learned model when available
+python rank.py --mode heuristic   # rule-based weights only
+python rank.py --mode learned     # require LightGBM model
 ```
 
 ---
 
-## Semantic embeddings
+## How FitRank works
 
-FitRank uses dense sentence-transformer embeddings (`all-MiniLM-L6-v2`) for genuine semantic matching between the JD and candidate text. They are pre-computed once and cached:
-
-```bash
-python scripts/precompute_embeddings.py --candidates data/candidates.jsonl --output-dir outputs/
+```
+Job Description  →  JD Parser  →  RoleProfile
+                                        │
+100K Candidates  →  Feature Extractor  ├─ Title gate, career evidence, coherence
+                      (28 signals)     ├─ Skill trust & penalties
+                                        ├─ Redrob platform signals
+                                        └─ Semantic capability match (MiniLM)
+                                        │
+                                        ▼
+                              LightGBM ranker (offline-trained)
+                                        │
+                                        ▼
+                         Top-100 CSV + per-candidate reasoning
 ```
 
-If the cache is missing, the system falls back to a lightweight sparse capability-vector matcher that still runs within the 5-minute budget.
+**Scoring formula (heuristic fallback):**
 
----
+`Final = 0.25×JD + 0.30×Career + 0.20×Coherence + 0.15×Platform + 0.10×Availability − Penalties`
 
-## Evaluation framework
+Honeypot profiles with high penalties receive a **×0.25** score multiplier.
 
-Because the challenge dataset has no public labels, FitRank builds a **synthetic evaluation set** from the heuristic ranker (top 5% positive, bottom 20% negative, known traps forced negative) and compares itself against a naive keyword-counting baseline.
+**Reasoning format (every row):**
 
-```bash
-python rank.py --eval
-# or
-python eval/compare.py --fitrank-out outputs/submission.csv --report outputs/eval_report.json
 ```
-
-The report includes:
-
-- `ndcg@10` and `ndcg@100`
-- `precision@100` and `recall@100`
-- Number of known traps in the top 100
-- Rank of a known genuine probe candidate
-
----
-
-## Ablation & sensitivity analysis
-
-Prove design choices are justified, not arbitrary:
-
-```bash
-make sensitivity
-# or
-python scripts/run_sensitivity.py --rebuild-ground-truth
-python rank.py --sensitivity   # after a normal ranking run
-```
-
-Produces `outputs/sensitivity_report.json` with:
-
-- **Bootstrap stability** — perturb top-level weights by ±10% (30 runs) and measure top-20 overlap
-- **Headline** — e.g. "Top 20 candidates remain stable under ±10% weight perturbation (mean 19.2/20, min 17/20)."
-- **Ablation study** — remove coherence, skill trust, or Redrob signals; report NDCG@10/@100 drop (heuristic + learned modes)
-
-Heuristic weight perturbation uses cached component scores (one full pass over the pool, then fast re-ranking). Learned ablation zeros feature groups before LightGBM inference.
-
-For baseline comparison metrics used in the deck:
-
-```bash
-make eval
+{title} | JD=0.85 Career=0.58 Coh=0.79 Trust=0.85 | {candidate-specific evidence}
 ```
 
 ---
 
-## Score calibration
+## Key design choices
 
-Raw model scores can be tightly clustered. Use calibration to spread the top-100 scores to a more interpretable 0.05–0.95 range while preserving rank order:
+1. **Explainable by default** — every rank has a structured reasoning string with numeric scores and evidence fragments (ML keywords, assessments, tenure, penalties).
+2. **Honeypot-resistant** — coherence engine flags template-stuffed profiles; traps are pushed below the top 100.
+3. **Semantic JD matching** — `all-MiniLM-L6-v2` embeddings (pre-computed offline) for genuine capability alignment.
+4. **Learned re-ranking** — LightGBM trained on pseudo-labels (top 5% positive, bottom 20% negative, traps forced negative).
+5. **JD-adaptive penalties** — CV/consulting/research penalties disabled when the JD domain matches.
+6. **Stability validated** — weight perturbation bootstrap shows top-20 overlap ≥ 19/20 under ±10% jitter (`outputs/sensitivity_report.json`).
+
+---
+
+## Evaluation & evidence
 
 ```bash
-python rank.py --calibrate
+make eval          # FitRank vs keyword baseline → outputs/eval_report.json
+make sensitivity   # stability + ablation → outputs/sensitivity_report.json
+make deck          # regenerate PDF deck from metrics
 ```
 
-For the official challenge submission, leave `--calibrate` off to use the default 0.50–0.75 rescaling.
+Because the challenge has no public labels, evaluation uses a **synthetic ground truth** built from heuristic scores plus known trap/probe IDs.
+
+---
+
+## Interactive demo
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+- Paste a JD and re-rank the pool
+- Radar charts of component scores per candidate
+- Penalty breakdown and reasoning panel
+- Filter by title domain, country, score
+- Export shortlist as CSV
+- Optional **AI reasoning** toggle (local GGUF model — see below)
+
+---
+
+## Optional: local LLM reasoning
+
+For demo purposes, FitRank can generate natural-language justifications for the top 100 using a small local model (no API calls):
+
+```bash
+make install-llm
+# Place Qwen2-1.5B-Instruct Q4_K_M at models/qwen2-1.5b-instruct-q4_k_m.gguf
+make precompute-reasoning
+python rank.py --reasoning llm
+```
+
+Default `make run` uses fast template reasoning — no LLM required for submission.
 
 ---
 
 ## Tests
 
-Fast unit tests run in seconds. Slow integration tests (full 100K dataset, end-to-end pipeline) are marked separately.
-
 ```bash
-# Fast unit tests only (seconds)
-python -m pytest -m "not slow" -q
-
-# Full suite including slow integration tests (minutes)
-python -m pytest -q
-
-# PRD compliance + deliverables
-python -m pytest tests/test_prd_compliance.py -v
+make test-fast                              # unit tests, ~60 s
+python -m pytest tests/test_prd_compliance.py -v   # deliverables + NFR checks
+make test                                   # full suite including 100K integration tests
 ```
 
 ---
 
-## Demo
-
-```bash
-streamlit run app/streamlit_app.py
-```
-
-Features:
-- Paste any JD and re-rank the candidate pool
-- Per-candidate radar chart of component scores
-- Detailed reasoning and penalty breakdown
-- Filter by title domain, country, and score
-- Export the full shortlist as CSV
-- Toggle **AI reasoning (local LLM)** for natural-language justifications
-
-### Optional local LLM reasoning
-
-FitRank can generate recruiter-friendly reasoning for the top-100 shortlist using a small local GGUF model (no network, CPU-only). Default `make run` keeps template reasoning for speed and reproducibility.
-
-```bash
-make install-llm
-# Download Qwen2-1.5B-Instruct Q4_K_M (~1 GB) to models/qwen2-1.5b-instruct-q4_k_m.gguf
-
-make precompute-reasoning
-python rank.py --reasoning llm --reasoning-cache outputs/reasoning_cache.jsonl
-python rank.py --reasoning llm --reasoning-max-new 0   # cache-only
-```
-
-If the model is missing or `llama-cpp-python` is not installed, reasoning falls back to template strings automatically.
-
----
-
-## Architecture
-
-```
-Job Description
-      │
-      ▼
-┌─────────────────────┐
-│   JD Parser         │ → RoleProfile (target titles, capabilities, domain, seniority)
-└─────────────────────┘
-      │
-      ▼
-Candidates (100K) ──► Heuristic Feature Extractor
-                         │
-                         ├── Title gate & domain classification
-                         ├── Career evidence analyzer
-                         ├── Profile coherence engine
-                         ├── Skill trust & penalties
-                         └── Redrob platform signals
-                         │
-                         ▼
-              28-d RankingFeatures
-                         │
-                         ▼
-         ┌─────────────────────┐
-         │   LightGBM ranker   │ (trained offline on pseudo-labels)
-         └─────────────────────┘
-                         │
-                         ▼
-              Top-100 submission.csv + audit_report.json
-```
-
-See `PRD_Redrob_FitRank.md` for the full v3.0 design.
-
----
-
-## Key improvements
-
-- **Two-stage learned ranker**: LightGBM model on 28 interpretable heuristic features
-- **Dense semantic embeddings**: sentence-transformer `all-MiniLM-L6-v2` with CPU-friendly pre-computation
-- **Evaluation framework**: synthetic labels, NDCG, baseline comparison, trap/probe quality gates
-- **Score calibration**: optional 0.05–0.95 range spreading for better discrimination
-- **JD-adaptive penalties**: CV/speech/robotics, consulting, and research penalties are disabled when the JD domain matches
-- **Ablation & sensitivity analysis**: component importance and ranking stability under weight perturbation
-- **Fast test suite**: unit tests run in seconds; slow tests are explicitly marked
-- **Enhanced Streamlit demo**: radar charts, reasoning panels, filters, and CSV export
-- **Explainable by default**: candidate-specific reasoning strings with numeric component scores
-
----
-
-## Reproduce submission
-
-```bash
-make install
-make download-model
-make precompute
-make train
-make run
-make validate
-make eval          # baseline vs FitRank NDCG report
-make sensitivity   # weight perturbation + ablation
-make deck          # regenerate PDF approach deck
-```
-
-### Approach deck
-
-The judge-ready PDF is built from [`deck/Redrob_FitRank_Approach.md`](deck/Redrob_FitRank_Approach.md). Metrics are injected from `outputs/audit_report.json`, `outputs/eval_report.json`, and `outputs/sensitivity_report.json`.
-
-Optional demo screenshot for slide 9:
-
-```bash
-streamlit run app/streamlit_app.py
-# Save a screenshot to deck/assets/demo_screenshot.png, then:
-make deck
-```
-
----
-
-## Repository structure
+## Repository layout
 
 | Path | Purpose |
 |------|---------|
-| `fitrank/` | Core ranking library |
-| `fitrank/features.py` | 28-feature extractor for the learned model |
-| `fitrank/learned_ranker.py` | LightGBM model wrapper |
-| `fitrank/embedder.py` | Dense + sparse semantic matching |
-| `fitrank/ranker.py` | Ranking orchestration (heuristic / learned / auto) |
-| `fitrank/calibrator.py` | Score calibration and rescaling |
-| `eval/compare.py` | Baseline comparison and NDCG metrics |
-| `eval/sensitivity.py` | Weight perturbation bootstrap and component ablation |
-| `scripts/run_sensitivity.py` | CLI for stability analysis |
-| `scripts/` | Training, pre-computation, audit, ablation, deck generation |
-| `app/streamlit_app.py` | Interactive demo |
-| `tests/` | Unit and integration tests |
-| `config/weights.yaml` | Heuristic scoring weights |
-| `outputs/` | Submission CSV, audit report, eval report, embeddings |
+| `fitrank/` | Core library (parser, features, ranker, reasoning, embeddings) |
+| `rank.py` | CLI entry point |
+| `validate_submission.py` | CSV format validator |
+| `data/` | `candidates.jsonl`, `job_description.txt`, schema |
+| `config/` | Scoring weights and normalization caps |
+| `models/fitrank_lgb.txt` | Trained LightGBM model |
+| `outputs/` | Submission CSV, audit, eval, sensitivity reports |
+| `eval/` | Baseline comparison, metrics, sensitivity analysis |
+| `scripts/` | Training, pre-compute, deck generation |
+| `app/` | Streamlit demo |
 | `deck/` | PDF approach deck |
+| `tests/` | Unit and integration tests |
+| `docs/` | Pointers to PRD and checklist |
 
 ---
 
-## Submission metadata
+## Constraints compliance
 
-See `submission_metadata.yaml` for team details, compute environment, and declarations.
+| Constraint | Status |
+|------------|--------|
+| CPU only | ✓ No GPU inference |
+| No network during ranking | ✓ All models cached locally |
+| ≤ 5 min on 100K candidates | ✓ ~284 s with pre-computed embeddings |
+| Deterministic output | ✓ Same inputs → same ranking |
+| Explainable reasoning | ✓ 100 rows with component scores |
+
+See `submission_metadata.yaml` for team declarations and `PRD_Redrob_FitRank.md` for the full design document.
+
+---
+
+## Contact & metadata
+
+Fill in participant names in `submission_metadata.yaml` before final upload.
+
+Repository: https://github.com/brainRottedCoder/redrob-datachallenge

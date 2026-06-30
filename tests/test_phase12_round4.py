@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from fitrank.calibrator import calibrate_scores
+from fitrank.calibrator import calibrate_scores, rescale_submission_scores
 from fitrank.career_analyzer import (
     CareerEvidence,
     SHALLOW_AI_PATTERNS,
@@ -27,7 +27,7 @@ from fitrank.models import (
     Skill,
 )
 from fitrank.penalties import compute_penalties
-from fitrank.ranker import _open_source_bonus, _open_source_corpus
+from fitrank.features import _open_source_bonus, _open_source_corpus
 from fitrank.reasoning import build_reasoning
 from fitrank.signals import _assessment_jd_overlap
 from fitrank.title_gate import TitleDomain, classify_title
@@ -405,17 +405,16 @@ def test_template_mismatch_clear_for_compatible_pair():
 # ---------------------------------------------------------------------------
 
 
-def test_audit_report_colocated_with_csv(tmp_path):
-    from rank import _write_submission_csv
+def test_audit_report_colocated_with_csv(tmp_path, jd_text):
+    from rank import write_submission_csv
     from fitrank.jd_parser import parse_jd
     from fitrank.ranker import rank_candidates
     from fitrank.loader import load_sample
 
     csv_path = tmp_path / "sub.csv"
-    jd_text = Path("data/job_description.txt").read_text(encoding="utf-8")
     role = parse_jd(jd_text)
-    ranked = rank_candidates(load_sample(), role, top_n=10)
-    _write_submission_csv(csv_path, ranked)
+    ranked = rank_candidates(load_sample(), role, top_n=10, jd_text=jd_text)
+    write_submission_csv(csv_path, ranked)
 
     expected_audit = tmp_path / "audit_report.json"
     assert not expected_audit.exists()
@@ -507,7 +506,7 @@ def _make_ranked(scores):
                 non_ml_title_high_skill=0.0,
                 consulting_only=0.0,
                 pure_research=0.0,
-                cv_without_nlp=0.0,
+                domain_mismatch=0.0,
                 salary_inverted=0.0,
                 experience_gap=0.0,
                 job_hopper=0.0,
@@ -543,6 +542,39 @@ def test_calibrator_spreads_p10_p90():
     assert p10 >= 0.25
     assert p90 <= 0.95
     assert p90 - p10 > 0.40
+
+
+def test_rescale_submission_hits_endpoints():
+    scores = [0.7419 - i * (0.2418 / 99) for i in range(100)]
+    scores[-1] = 0.5001
+    ranked = _make_ranked(scores)
+    rescaled = rescale_submission_scores(ranked)
+    rescaled_scores = [item[2].final_score for item in rescaled]
+    assert rescaled_scores[0] == pytest.approx(0.95, abs=0.0001)
+    assert rescaled_scores[-1] == pytest.approx(0.55, abs=0.0001)
+
+
+def test_rescale_preserves_order():
+    ranked = _make_ranked([0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05])
+    original_ids = [item[0].candidate_id for item in ranked]
+    rescaled = rescale_submission_scores(ranked)
+    rescaled_ids = [item[0].candidate_id for item in rescaled]
+    assert rescaled_ids == original_ids
+
+
+def test_rescale_non_increasing():
+    scores = [0.55 + i * 0.001 for i in range(100)]
+    ranked = _make_ranked(list(reversed(scores)))
+    rescaled = rescale_submission_scores(ranked)
+    rescaled_scores = [item[2].final_score for item in rescaled]
+    assert all(rescaled_scores[i] >= rescaled_scores[i + 1] for i in range(len(rescaled_scores) - 1))
+
+
+def test_rescale_flat_scores():
+    ranked = _make_ranked([0.6] * 10)
+    rescaled = rescale_submission_scores(ranked)
+    rescaled_scores = [item[2].final_score for item in rescaled]
+    assert all(s == pytest.approx(0.95) for s in rescaled_scores)
 
 
 # ---------------------------------------------------------------------------

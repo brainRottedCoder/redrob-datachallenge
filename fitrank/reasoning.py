@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
-from fitrank.constants import (
-    CONSULTING_FIRMS,
-    CV_SPEECH_ROBOTICS_TITLES,
-    INDIAN_TIER1,
-    ML_KEYWORDS,
-    RESEARCH_ONLY_TITLES,
-)
-from fitrank.models import Candidate
+from dataclasses import dataclass
+
+from fitrank.constants import ML_KEYWORDS
+from fitrank.models import Candidate, RoleProfile
 from fitrank.ranker import ComponentScores
 
 
-# Keywords pulled from the deep ML pattern list for reasoning extraction.
 _ML_KEYWORDS = ML_KEYWORDS
 
 
@@ -63,19 +58,36 @@ def _describe_availability(candidate: Candidate) -> list[str]:
     return notes
 
 
-def _describe_location(candidate: Candidate) -> str | None:
-    """Return a short location note if India/Tier-1."""
+def _describe_location(candidate: Candidate, role_profile: RoleProfile | None = None) -> str | None:
+    """Return a short location note when JD or profile indicates geography."""
     location = candidate.profile.location.lower()
     country = candidate.profile.country.lower()
+    preferred = role_profile.prefs.preferred_locations if role_profile else []
+
+    if preferred:
+        for loc in preferred:
+            if loc in location or loc in country:
+                return loc.title()
+        if country in {"india", "in"} and "india" in preferred:
+            return "India"
+        return None
+
     if country in {"india", "in"}:
-        for city in INDIAN_TIER1:
-            if city in location:
-                return city.title()
-        return "India"
+        return candidate.profile.location.split(",")[0].strip().title() or "India"
     return None
 
 
-def _describe_penalty_reasons(components: ComponentScores) -> list[str]:
+def _domain_mismatch_label(role_profile: RoleProfile | None) -> str:
+    if role_profile and role_profile.prefs.domain:
+        domain = role_profile.prefs.domain.replace("_", " ")
+        return f"domain mismatch ({domain})"
+    return "domain mismatch"
+
+
+def _describe_penalty_reasons(
+    components: ComponentScores,
+    role_profile: RoleProfile | None = None,
+) -> list[str]:
     """Return explicit, human-readable penalty reasons."""
     p = components.penalties_detail
     reasons: list[str] = []
@@ -95,8 +107,8 @@ def _describe_penalty_reasons(components: ComponentScores) -> list[str]:
         reasons.append("consulting-only")
     if p.pure_research >= 0.5:
         reasons.append("pure research")
-    if p.cv_without_nlp >= 0.5:
-        reasons.append("CV/speech without NLP/IR")
+    if p.domain_mismatch >= 0.5:
+        reasons.append(_domain_mismatch_label(role_profile))
     if p.salary_inverted >= 0.5:
         reasons.append("inverted salary")
     if p.experience_gap >= 0.5:
@@ -108,21 +120,50 @@ def _describe_penalty_reasons(components: ComponentScores) -> list[str]:
     return reasons
 
 
-def build_reasoning(
+@dataclass(frozen=True)
+class ReasoningEvidence:
+    """Structured evidence shared by template and LLM reasoning paths."""
+
+    candidate_id: str
+    title: str
+    years_of_experience: float
+    ml_tenure_years: float
+    jd_fit: float
+    career_evidence: float
+    coherence: float
+    platform_trust: float
+    penalties: float
+    is_honeypot: bool
+    role_evidence: list[str]
+    assessments: list[tuple[str, float]]
+    github_score: float | None
+    availability_notes: list[str]
+    location: str | None
+    penalty_reasons: list[str]
+    score_line: str
+    fragments: list[str]
+
+
+def _build_score_line(components: ComponentScores) -> str:
+    scores = (
+        f"JD={components.jd_fit:.2f} Career={components.career_evidence:.2f} "
+        f"Coh={components.coherence:.2f} Trust={components.platform_trust:.2f}"
+    )
+    if components.is_honeypot:
+        scores += " [HONEYPOT ×0.25]"
+    return scores
+
+
+def _gather_evidence(
     candidate: Candidate,
     components: ComponentScores,
     ml_tenure: float | None = None,
-) -> str:
-    """Build a concise, candidate-specific reasoning string.
-
-    Args:
-        candidate: The candidate profile.
-        components: Scored component breakdown from the ranker.
-        ml_tenure: Pre-computed ML tenure in years (from CareerEvidence).
-                   If None, falls back to 0.0.
-    """
+    role_profile: RoleProfile | None = None,
+) -> ReasoningEvidence:
+    """Collect candidate-specific facts for template or LLM reasoning."""
     title = candidate.profile.current_title
     exp = candidate.profile.years_of_experience
+    ml_tenure_val = ml_tenure if ml_tenure is not None else components.ml_tenure_years
 
     fragments: list[str] = []
 
@@ -140,14 +181,14 @@ def build_reasoning(
         fragments.append("no assessments")
 
     gh = candidate.redrob_signals.github_activity_score
-    if gh is not None and gh >= 0:
-        fragments.append(f"GH {gh:.0f}")
+    github_score: float | None = gh if gh is not None and gh >= 0 else None
+    if github_score is not None:
+        fragments.append(f"GH {github_score:.0f}")
     else:
         fragments.append("no GH")
 
-    ml_tenure_val = ml_tenure if ml_tenure is not None else 0.0
     avail = _describe_availability(candidate)
-    location = _describe_location(candidate)
+    location = _describe_location(candidate, role_profile)
     exp_avail = f"{exp:.1f}yrs total/{ml_tenure_val:.1f}yrs ML"
     if location:
         exp_avail += f" {location}"
@@ -155,18 +196,77 @@ def build_reasoning(
         exp_avail += f" ({'/'.join(avail)})"
     fragments.append(exp_avail)
 
-    penalty_reasons = _describe_penalty_reasons(components)
+    penalty_reasons = _describe_penalty_reasons(components, role_profile)
     if penalty_reasons:
         fragments.append(f"| {','.join(penalty_reasons)} ({components.penalties:.2f})")
     elif components.penalties >= 0.05:
         fragments.append(f"| minor penalties ({components.penalties:.2f})")
 
-    scores = (
-        f"JD={components.jd_fit:.2f} Career={components.career_evidence:.2f} "
-        f"Coh={components.coherence:.2f} Trust={components.platform_trust:.2f}"
+    return ReasoningEvidence(
+        candidate_id=candidate.candidate_id,
+        title=title,
+        years_of_experience=exp,
+        ml_tenure_years=ml_tenure_val,
+        jd_fit=components.jd_fit,
+        career_evidence=components.career_evidence,
+        coherence=components.coherence,
+        platform_trust=components.platform_trust,
+        penalties=components.penalties,
+        is_honeypot=components.is_honeypot,
+        role_evidence=role_evidence,
+        assessments=assessments,
+        github_score=github_score,
+        availability_notes=avail,
+        location=location,
+        penalty_reasons=penalty_reasons,
+        score_line=_build_score_line(components),
+        fragments=fragments,
     )
-    if components.is_honeypot:
-        scores += " [HONEYPOT ×0.25]"
 
-    evidence_line = "; ".join(fragments)
-    return f"{title} | {scores} | {evidence_line}"
+
+def build_trap_explanation(
+    candidate: Candidate,
+    components: ComponentScores,
+    role_profile: RoleProfile,
+) -> str:
+    """Structured explanation for trap/honeypot profiles in the demo."""
+    lines: list[str] = []
+    title = candidate.profile.current_title
+    lines.append(f"**{title}** ({candidate.candidate_id})")
+
+    penalty_reasons = _describe_penalty_reasons(components, role_profile)
+    if penalty_reasons:
+        lines.append("Penalties: " + ", ".join(penalty_reasons))
+    else:
+        lines.append("Penalties: none significant")
+
+    if components.is_honeypot:
+        lines.append(
+            "Coherence failed: profile flagged as honeypot "
+            f"(score={components.coherence:.2f})"
+        )
+    elif components.coherence < 0.3:
+        lines.append(f"Low coherence score ({components.coherence:.2f})")
+
+    if role_profile.prefs.penalize_domain_mismatch and components.penalties_detail.domain_mismatch >= 0.5:
+        keywords = ", ".join(role_profile.prefs.required_evidence_keywords[:5])
+        lines.append(f"JD expects evidence: {keywords or 'general ML'}")
+
+    lines.append(
+        f"FitRank score={components.final_score:.3f} "
+        f"(JD={components.jd_fit:.2f}, Career={components.career_evidence:.2f}, "
+        f"Coh={components.coherence:.2f})"
+    )
+    return "\n\n".join(lines)
+
+
+def build_reasoning(
+    candidate: Candidate,
+    components: ComponentScores,
+    ml_tenure: float | None = None,
+    role_profile: RoleProfile | None = None,
+) -> str:
+    """Build a concise, candidate-specific reasoning string."""
+    evidence = _gather_evidence(candidate, components, ml_tenure, role_profile)
+    evidence_line = "; ".join(evidence.fragments)
+    return f"{evidence.title} | {evidence.score_line} | {evidence_line}"

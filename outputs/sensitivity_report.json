@@ -1,0 +1,47 @@
+{
+  "runtime_seconds": 103.38,
+  "headline": "Top 20 candidates remain stable under \u00b110% weight perturbation (mean 19.7/20, min 19/20 across 10 runs).",
+  "bootstrap": {
+    "samples": 10,
+    "perturbation_pct": 0.1,
+    "mode": "heuristic",
+    "top20_mean_overlap": 19.7,
+    "top20_min_overlap": 19,
+    "top100_mean_jaccard": 0.9714,
+    "stable_runs_pct": 100.0,
+    "stable_runs_count": 10
+  },
+  "ablation": {
+    "heuristic": {
+      "baseline_ndcg@10": 1.0,
+      "baseline_ndcg@100": 1.0,
+      "coherence": {
+        "ndcg@10": 1.0,
+        "ndcg@100": 1.0,
+        "delta@10": 0.0,
+        "delta@100": 0.0
+      },
+      "skill_trust": {
+        "ndcg@10": 1.0,
+        "ndcg@100": 1.0,
+        "delta@10": 0.0,
+        "delta@100": 0.0
+      },
+      "signals": {
+        "ndcg@10": 1.0,
+        "ndcg@100": 1.0,
+        "delta@10": 0.0,
+        "delta@100": 0.0
+      }
+    },
+    "learned": {
+      "available": false,
+      "reason": "model expects 12 features; current vector has 28"
+    }
+  },
+  "paths": {
+    "candidates": "data\\sample_candidates.json",
+    "ground_truth": "outputs\\ground_truth.jsonl",
+    "weights": "config\\weights.yaml"
+  }
+}

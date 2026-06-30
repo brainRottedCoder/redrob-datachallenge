@@ -8,7 +8,7 @@ import re
 from dataclasses import asdict
 from pathlib import Path
 
-from fitrank.models import RoleProfile
+from fitrank.models import JDPrefs, RoleProfile
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +108,33 @@ NICE_TO_HAVE_KEYWORDS: list[tuple[str, str]] = [
     ("marketplace", "marketplace products"),
 ]
 
+DOMAIN_EVIDENCE_KEYWORDS: dict[str, list[str]] = {
+    "NLP": [
+        "nlp", "natural language", "retrieval", "ranking", "transformer",
+        "rag", "embedding", "semantic search", "bert", "llm",
+    ],
+    "information_retrieval": [
+        "retrieval", "ranking", "search", "embedding", "semantic search",
+        "learning-to-rank", "ndcg", "mrr",
+    ],
+    "computer_vision": [
+        "computer vision", "opencv", "object detection", "cnn", "yolo",
+        "image classification", "segmentation",
+    ],
+    "GenAI": [
+        "llm", "fine-tuning", "rag", "prompt", "generative", "transformer",
+    ],
+    "MLOps": [
+        "mlops", "deployment", "serving", "monitoring", "mlflow", "kubeflow",
+    ],
+    "data_science": [
+        "statistics", "experiment", "model", "feature engineering", "analysis",
+    ],
+    "general_ml": [
+        "pytorch", "model", "training", "deployment", "machine learning",
+    ],
+}
+
 DOMAIN_RULES: list[tuple[str, list[str]]] = [
     ("NLP", ["nlp", "natural language", "transformers", "bert", "tokeniz"]),
     ("computer_vision", ["computer vision", "opencv", "object detection", "cnn"]),
@@ -115,6 +142,42 @@ DOMAIN_RULES: list[tuple[str, list[str]]] = [
     ("MLOps", ["mlops", "kubeflow", "mlflow", "model deployment", "model serving"]),
     ("data_science", ["data scientist", "statistics", "experiment design"]),
     ("information_retrieval", ["retrieval", "ranking", "search", "hybrid retrieval"]),
+]
+
+CONSULTING_POSITIVE_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"consulting\s+background", re.I),
+    re.compile(
+        r"consulting\s+experience\s+(?:is\s+)?(?:welcome|valued|preferred|a\s+plus)",
+        re.I,
+    ),
+    re.compile(r"(?:welcome|value|valued|prefer|preferred).{0,40}consulting", re.I),
+    re.compile(r"consulting.{0,40}(?:welcome|valued|preferred|a\s+plus)", re.I),
+    re.compile(r"client[- ]facing", re.I),
+    re.compile(r"services\s+background", re.I),
+    re.compile(r"professional\s+services", re.I),
+    re.compile(r"management\s+consulting", re.I),
+    re.compile(r"\bbig\s+4\b", re.I),
+    re.compile(r"\bbig\s+four\b", re.I),
+]
+
+RESEARCH_POSITIVE_KEYWORDS = [
+    "phd", "postdoc", "post-doc", "research background", "publications",
+    "published papers", "academic research", "research scientist",
+]
+
+LOCATION_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\b(bangalore|bengaluru)\b", re.I), "bangalore"),
+    (re.compile(r"\b(pune)\b", re.I), "pune"),
+    (re.compile(r"\b(noida)\b", re.I), "noida"),
+    (re.compile(r"\b(mumbai)\b", re.I), "mumbai"),
+    (re.compile(r"\b(delhi|new delhi)\b", re.I), "delhi"),
+    (re.compile(r"\b(gurgaon|gurugram)\b", re.I), "gurgaon"),
+    (re.compile(r"\b(hyderabad)\b", re.I), "hyderabad"),
+    (re.compile(r"\b(chennai)\b", re.I), "chennai"),
+    (re.compile(r"\b(kolkata)\b", re.I), "kolkata"),
+    (re.compile(r"\b(ahmedabad)\b", re.I), "ahmedabad"),
+    (re.compile(r"\b(india)\b", re.I), "india"),
+    (re.compile(r"\b(remote)\b", re.I), "remote"),
 ]
 
 SENIORITY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
@@ -138,11 +201,54 @@ WORK_MODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
+def _build_jd_prefs(lowered: str, domain: str) -> JDPrefs:
+    """Derive conditional penalty flags and evidence keywords from JD text."""
+    evidence = list(DOMAIN_EVIDENCE_KEYWORDS.get(domain, DOMAIN_EVIDENCE_KEYWORDS["general_ml"]))
+
+    penalize_consulting = not any(p.search(lowered) for p in CONSULTING_POSITIVE_PATTERNS)
+    penalize_research = not any(kw in lowered for kw in RESEARCH_POSITIVE_KEYWORDS)
+    penalize_domain_mismatch = domain != "computer_vision"
+    values_production = not any(kw in lowered for kw in RESEARCH_POSITIVE_KEYWORDS)
+
+    locations: list[str] = []
+    seen_locs: set[str] = set()
+    for pattern, canonical in LOCATION_PATTERNS:
+        if pattern.search(lowered) and canonical not in seen_locs:
+            locations.append(canonical)
+            seen_locs.add(canonical)
+
+    return JDPrefs(
+        domain=domain,
+        required_evidence_keywords=evidence,
+        penalize_consulting_only=penalize_consulting,
+        penalize_pure_research=penalize_research,
+        penalize_domain_mismatch=penalize_domain_mismatch,
+        preferred_locations=locations,
+        values_production_experience=values_production,
+    )
+
+
+def _role_profile_from_parsed(lowered: str, normalized: str) -> RoleProfile:
+    domain = _extract_domain(lowered)
+    prefs = _build_jd_prefs(lowered, domain)
+    return RoleProfile(
+        target_titles=_extract_titles(normalized),
+        required_capabilities=_extract_capabilities(lowered),
+        nice_to_have=_extract_nice_to_have(lowered),
+        seniority=_extract_seniority(lowered),
+        min_experience_years=_extract_experience_years(normalized),
+        preferred_work_mode=_extract_work_mode(lowered),
+        domain=domain,
+        prefs=prefs,
+    )
+
+
 def parse_jd(text: str) -> RoleProfile:
     """Parse job description text into a RoleProfile."""
     normalized = (text or "").strip()
     if not normalized:
         logger.warning("Empty job description provided; using default ML engineer profile")
+        default_prefs = _build_jd_prefs("", DEFAULT_ROLE_PROFILE.domain)
         return RoleProfile(
             target_titles=list(DEFAULT_ROLE_PROFILE.target_titles),
             required_capabilities=list(DEFAULT_ROLE_PROFILE.required_capabilities),
@@ -151,18 +257,11 @@ def parse_jd(text: str) -> RoleProfile:
             min_experience_years=DEFAULT_ROLE_PROFILE.min_experience_years,
             preferred_work_mode=DEFAULT_ROLE_PROFILE.preferred_work_mode,
             domain=DEFAULT_ROLE_PROFILE.domain,
+            prefs=default_prefs,
         )
 
     lowered = normalized.lower()
-    return RoleProfile(
-        target_titles=_extract_titles(normalized),
-        required_capabilities=_extract_capabilities(lowered),
-        nice_to_have=_extract_nice_to_have(lowered),
-        seniority=_extract_seniority(lowered),
-        min_experience_years=_extract_experience_years(normalized),
-        preferred_work_mode=_extract_work_mode(lowered),
-        domain=_extract_domain(lowered),
-    )
+    return _role_profile_from_parsed(lowered, normalized)
 
 
 def _extract_titles(text: str) -> list[str]:

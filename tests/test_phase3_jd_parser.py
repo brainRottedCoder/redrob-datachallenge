@@ -88,6 +88,24 @@ def test_parse_official_job_description_file(project_root: Path):
     assert len(profile.required_capabilities) >= 3
     assert profile.seniority == "senior"
     assert profile.min_experience_years >= 5.0
+    assert profile.prefs.penalize_consulting_only is True
+    assert profile.prefs.penalize_domain_mismatch is True
+    assert "pune" in profile.prefs.preferred_locations or "noida" in profile.prefs.preferred_locations
+
+
+def test_cv_jd_disables_domain_mismatch_pref():
+    profile = parse_jd(
+        "Computer Vision Engineer. Object detection, OpenCV, CNN. Based in Bangalore."
+    )
+    assert profile.domain == "computer_vision"
+    assert profile.prefs.penalize_domain_mismatch is False
+
+
+def test_consulting_jd_disables_consulting_penalty_pref():
+    profile = parse_jd(
+        "ML Engineer with consulting background welcome. Client-facing experience valued."
+    )
+    assert profile.prefs.penalize_consulting_only is False
 
 
 def test_parse_jd_file_writes_output(project_root: Path, tmp_path):

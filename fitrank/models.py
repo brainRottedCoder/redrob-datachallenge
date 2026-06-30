@@ -232,6 +232,19 @@ class Candidate:
 
 
 @dataclass
+class JDPrefs:
+    """JD-derived preferences that gate conditional penalties and bonuses."""
+
+    domain: str = "general_ml"
+    required_evidence_keywords: list[str] = field(default_factory=list)
+    penalize_consulting_only: bool = True
+    penalize_pure_research: bool = True
+    penalize_domain_mismatch: bool = True
+    preferred_locations: list[str] = field(default_factory=list)
+    values_production_experience: bool = True
+
+
+@dataclass
 class RoleProfile:
     target_titles: list[str] = field(default_factory=list)
     required_capabilities: list[str] = field(default_factory=list)
@@ -240,6 +253,7 @@ class RoleProfile:
     min_experience_years: float = 0.0
     preferred_work_mode: str = "flexible"
     domain: str = "general_ml"
+    prefs: JDPrefs = field(default_factory=JDPrefs)
 
 
 @dataclass

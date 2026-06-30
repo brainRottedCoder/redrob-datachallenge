@@ -6,7 +6,8 @@ import re
 from dataclasses import dataclass
 
 from fitrank.career_analyzer import CareerEvidence
-from fitrank.models import Candidate
+from fitrank.constants import CV_SPEECH_ROBOTICS_TITLES
+from fitrank.models import Candidate, RoleProfile
 from fitrank.title_gate import TitleDomain
 
 ML_SKILL_KEYWORDS = {
@@ -20,13 +21,6 @@ _ML_SKILL_PATTERN = re.compile(
     "|".join(re.escape(keyword) for keyword in sorted(ML_SKILL_KEYWORDS, key=len, reverse=True)),
     re.IGNORECASE,
 )
-
-# Titles that are ML_AI in domain but should not receive full confirmation if
-# the career lacks the NLP/IR focus required by the Senior AI Engineer JD.
-_PENALIZED_ML_TITLES = {
-    "computer vision", "cv engineer", "vision engineer", "speech recognition",
-    "speech engineer", "robotics engineer", "roboticist", "control engineer",
-}
 
 DOMAIN_COMPATIBILITY: dict[tuple[str, TitleDomain], float] = {
     ("ml_work", TitleDomain.ML_AI): 1.0,
@@ -73,10 +67,11 @@ def compute_coherence(
     candidate: Candidate,
     career_evidence: CareerEvidence,
     title_domain: TitleDomain,
+    role_profile: RoleProfile | None = None,
 ) -> CoherenceScore:
     template = template_coherence_score(career_evidence.template_domain, title_domain)
     confirmation = title_domain_confirmation_score(
-        candidate, title_domain, career_evidence
+        candidate, title_domain, career_evidence, role_profile
     )
     alignment = skill_career_alignment(candidate)
 
@@ -113,9 +108,6 @@ def compute_coherence(
 
 
 def template_coherence_score(template_domain: str, title_domain: TitleDomain) -> float:
-    # Return a small non-zero fallback for unknown template domains so that
-    # genuine candidates whose descriptions don't match any template aren't
-    # hard-zeroed in the coherence score.
     return DOMAIN_COMPATIBILITY.get((template_domain, title_domain), 0.3)
 
 
@@ -123,24 +115,28 @@ def title_domain_confirmation_score(
     candidate: Candidate,
     title_domain: TitleDomain,
     career_evidence: CareerEvidence,
+    role_profile: RoleProfile | None = None,
 ) -> float:
     title_lower = candidate.profile.current_title.lower()
     if title_domain == TitleDomain.ML_AI:
-        # Penalized ML titles (CV/speech/robotics) need NLP/IR evidence to confirm.
-        if any(pt in title_lower for pt in _PENALIZED_ML_TITLES):
-            career_text = " ".join(
-                entry.description for entry in candidate.career_history
-            ).lower()
-            nlp_ir_terms = [
-                "nlp", "natural language", "retrieval", "ranking", "search",
-                "transformer", "bert", "llm", "rag", "semantic search", "embedding"
-            ]
-            if not any(term in career_text for term in nlp_ir_terms):
-                return 0.3
+        prefs = role_profile.prefs if role_profile else None
+        domain = prefs.domain if prefs else "general_ml"
+        penalize_mismatch = prefs.penalize_domain_mismatch if prefs else True
+        evidence_keywords = list(prefs.required_evidence_keywords) if prefs else []
+
+        if domain == "computer_vision":
+            if any(pt in title_lower for pt in CV_SPEECH_ROBOTICS_TITLES):
+                return 1.0
+
+        if penalize_mismatch and any(pt in title_lower for pt in CV_SPEECH_ROBOTICS_TITLES):
+            if evidence_keywords:
+                career_text = " ".join(
+                    entry.description for entry in candidate.career_history
+                ).lower()
+                if not any(kw in career_text for kw in evidence_keywords):
+                    return 0.3
         return 1.0
     if title_domain == TitleDomain.AI_ADJACENT:
-        # AI-adjacent titles need real career depth to earn confirmation; otherwise
-        # they are likely title-chasers / keyword-stuffed profiles.
         if career_evidence.all_career_ml_depth >= 2:
             return 0.5
         return 0.2
@@ -169,7 +165,6 @@ def skill_career_alignment(candidate: Candidate) -> float:
             score += 2.0
         elif in_past:
             score += 1.0
-    # Apply a minimum effective denominator so 1-match candidates max at 0.33.
     effective_total = max(len(ml_skills), 3) * 2.0
     return min(score / effective_total, 1.0)
 

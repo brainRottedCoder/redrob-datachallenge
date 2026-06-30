@@ -3,7 +3,8 @@
 from fitrank.career_analyzer import CareerEvidence, analyze_career
 from fitrank.coherence import CoherenceScore, compute_coherence
 from fitrank.loader import load_candidates
-from fitrank.models import Candidate, CareerEntry, Profile, RedrobSignals, RoleProfile, SalaryRange, Skill
+from fitrank.jd_parser import parse_jd
+from fitrank.models import Candidate, CareerEntry, JDPrefs, Profile, RedrobSignals, RoleProfile, SalaryRange, Skill
 from fitrank.penalties import compute_penalties
 from fitrank.title_gate import TitleDomain, classify_title
 
@@ -76,3 +77,40 @@ def test_t7_11_penalty_clamped():
     coherence = compute_coherence(candidate, career, TitleDomain.NON_TECH)
     penalties = compute_penalties(candidate, career, coherence, RoleProfile())
     assert penalties.total_penalty <= 0.70
+
+
+def test_consulting_penalty_gated_by_jd_prefs():
+    candidate = Candidate(
+        "CAND_CONS",
+        Profile("A", "h", "s", "L", "IN", 8.0, "ML Engineer", "Co", "201-500", "Tech"),
+        [
+            CareerEntry("TCS", "ML Engineer", "2018-01-01", "2020-01-01", 24, False, "Svc", "1000+", "ML"),
+            CareerEntry("Infosys", "ML Engineer", "2020-01-01", None, 48, True, "Svc", "1000+", "ML"),
+        ],
+        [],
+        [],
+        _signals(),
+    )
+    career = CareerEvidence(5, 3, 0.2, "ml_work", 0)
+    coherence = CoherenceScore(1.0, 1.0, 0.8, 0.9, False)
+    strict_role = RoleProfile(prefs=JDPrefs(penalize_consulting_only=True))
+    lenient_role = parse_jd("Consulting background welcome. Client-facing experience valued.")
+    assert compute_penalties(candidate, career, coherence, strict_role).consulting_only == 1.0
+    assert compute_penalties(candidate, career, coherence, lenient_role).consulting_only == 0.0
+
+
+def test_domain_mismatch_penalty_gated_by_jd_prefs():
+    candidate = Candidate(
+        "CAND_CV",
+        Profile("A", "h", "s", "L", "IN", 6.0, "Computer Vision Engineer", "Co", "201-500", "Tech"),
+        [CareerEntry("Co", "CV Engineer", "2020-01-01", None, 48, True, "Tech", "201-500", "YOLO and OpenCV")],
+        [],
+        [],
+        _signals(),
+    )
+    career = CareerEvidence(5, 3, 0.2, "ml_work", 0)
+    coherence = CoherenceScore(1.0, 0.3, 0.8, 0.7, False)
+    nlp_role = parse_jd("Senior NLP Engineer. Retrieval, ranking, transformers, RAG.")
+    cv_role = parse_jd("Computer Vision Engineer. Object detection, OpenCV, CNN.")
+    assert compute_penalties(candidate, career, coherence, nlp_role).domain_mismatch == 1.0
+    assert compute_penalties(candidate, career, coherence, cv_role).domain_mismatch == 0.0

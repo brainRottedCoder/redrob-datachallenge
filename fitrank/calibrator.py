@@ -1,78 +1,113 @@
-"""Multi-JD score calibration.
+"""Score calibration utilities for FitRank.
 
-Linearly rescales raw scores so the 10th–90th percentile spans a fixed band
-(default 0.40–0.90). This does NOT change the relative ordering, only the
-absolute score values. It is intended for internal multi-JD analysis, NOT for
-single-JD challenge submissions where raw scores are compared across teams.
+Ranking models (heuristic or learned) can produce top-100 scores that are tightly
+clustered. Calibration spreads them to a wider, more interpretable range while
+preserving the exact ordering required by the submission format.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from fitrank.ranker import ComponentScores
+from fitrank.models import Candidate, CandidateScore
+from fitrank.component_scores import ComponentScores
 
 
-def _percentile(values: list[float], p: float) -> float:
-    """Return the p-th percentile of a sorted list using linear interpolation."""
-    if not values:
-        return 0.0
-    sorted_values = sorted(values)
-    n = len(sorted_values)
-    if n == 1:
-        return sorted_values[0]
-    # Use nearest-rank variant: index = (p/100) * (n - 1)
-    k = (p / 100.0) * (n - 1)
-    f = int(k)
-    c = min(f + 1, n - 1)
-    if f == c:
-        return sorted_values[f]
-    return sorted_values[f] + (k - f) * (sorted_values[c] - sorted_values[f])
+def _enforce_non_increasing(scores: list[float]) -> list[float]:
+    """Clamp scores so each value is <= the previous (descending order)."""
+    if not scores:
+        return scores
+    result = [scores[0]]
+    for score in scores[1:]:
+        result.append(min(score, result[-1]))
+    return result
+
+
+def _apply_rescaled_scores(
+    ranked: list[tuple[Candidate, ComponentScores, CandidateScore]],
+    new_scores: list[float],
+) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
+    result: list[tuple[Candidate, ComponentScores, CandidateScore]] = []
+    for (candidate, components, score_obj), new_score in zip(ranked, new_scores, strict=True):
+        clamped = round(max(0.0, min(1.0, new_score)), 4)
+        score_obj.final_score = clamped
+        components.final_score = clamped
+        result.append((candidate, components, score_obj))
+    return result
 
 
 def calibrate_scores(
-    ranked: list[tuple],
-    target_p10: float = 0.40,
-    target_p90: float = 0.90,
-) -> list[tuple]:
-    """Rescale final scores of a ranked list without changing ordering.
+    ranked: list[tuple[Candidate, ComponentScores, CandidateScore]],
+    low: float | None = None,
+    high: float | None = None,
+    target_p10: float | None = None,
+    target_p90: float | None = None,
+) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
+    """Spread top-N scores to a wider range for better discrimination.
 
-    Args:
-        ranked: List of (Candidate, ComponentScores, CandidateScore) tuples as
-            returned by rank_candidates.
-        target_p10: Target score for the 10th percentile candidate.
-        target_p90: Target score for the 90th percentile candidate.
+    Two modes are supported:
 
-    Returns:
-        A new list with the same ordering but updated final_score values.
+    * Min-max: pass ``low`` and ``high`` to linearly map the minimum score to
+      ``low`` and the maximum score to ``high``.
+    * Percentile: pass ``target_p10`` and ``target_p90`` to map the 10th
+      percentile to ``target_p10`` and the 90th percentile to ``target_p90``.
+
+    If percentile targets are provided they take precedence. Preserves ranking order.
     """
     if not ranked:
         return ranked
 
     scores = [item[2].final_score for item in ranked]
-    p10 = _percentile(scores, 10.0)
-    p90 = _percentile(scores, 90.0)
 
-    if p90 <= p10:
-        # No spread to calibrate; return a shallow copy with clamped scores.
-        return [
-            (candidate, components, score_obj.__class__(**{**score_obj.__dict__, "final_score": max(0.0, min(1.0, score_obj.final_score))}))
-            for candidate, components, score_obj in ranked
-        ]
+    if target_p10 is not None and target_p90 is not None:
+        sorted_scores = sorted(scores)
+        p10_index = max(0, int(0.1 * (len(sorted_scores) - 1)))
+        p90_index = int(0.9 * (len(sorted_scores) - 1))
+        src_low = sorted_scores[p10_index]
+        src_high = sorted_scores[p90_index]
+        dst_low = target_p10
+        dst_high = target_p90
+    else:
+        src_low = min(scores)
+        src_high = max(scores)
+        dst_low = low if low is not None else 0.05
+        dst_high = high if high is not None else 0.95
 
-    target_span = target_p90 - target_p10
-    raw_span = p90 - p10
-    scale = target_span / raw_span
+    span = src_high - src_low
+    if span == 0:
+        calibrated = [dst_low + (dst_high - dst_low) / 2.0] * len(scores)
+    else:
+        calibrated = [dst_low + (dst_high - dst_low) * (s - src_low) / span for s in scores]
 
-    calibrated: list[tuple] = []
-    for candidate, components, score_obj in ranked:
-        raw = score_obj.final_score
-        new_score = target_p10 + (raw - p10) * scale
-        new_score = max(0.0, min(1.0, new_score))
-        # Mutate a copy of the score object so callers can still read components.
-        new_score_obj = score_obj.__class__(**{**score_obj.__dict__, "final_score": round(new_score, 4)})
-        new_components = components.__class__(**{**components.__dict__, "final_score": round(new_score, 4)})
-        calibrated.append((candidate, new_components, new_score_obj))
+    result: list[tuple[Candidate, ComponentScores, CandidateScore]] = []
+    for (candidate, components, score_obj), new_score in zip(ranked, calibrated, strict=True):
+        score_obj.final_score = round(max(0.0, min(1.0, new_score)), 4)
+        components.final_score = score_obj.final_score
+        result.append((candidate, components, score_obj))
+    return result
 
-    return calibrated
+
+def rescale_submission_scores(
+    ranked: list[tuple[Candidate, ComponentScores, CandidateScore]],
+    top_min: float = 0.55,
+    top_max: float = 0.95,
+) -> list[tuple[Candidate, ComponentScores, CandidateScore]]:
+    """Rescale the top-100 shortlist to a recruiter-friendly 0.55-0.95 band.
+
+    The minimum score maps to ``top_min`` and the maximum score maps to ``top_max``.
+    Flat scores map to ``top_max`` so every candidate still appears attractive.
+    Preserves ranking order.
+    """
+    if not ranked:
+        return ranked
+
+    scores = [item[2].final_score for item in ranked]
+    min_score = min(scores)
+    max_score = max(scores)
+    span = max_score - min_score
+
+    if span == 0:
+        rescaled = [top_max] * len(scores)
+    else:
+        rescaled = [top_min + (top_max - top_min) * (s - min_score) / span for s in scores]
+
+    rescaled = _enforce_non_increasing([round(s, 4) for s in rescaled])
+    return _apply_rescaled_scores(ranked, rescaled)

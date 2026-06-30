@@ -26,7 +26,7 @@ class PenaltyScore:
     non_ml_title_high_skill: float
     consulting_only: float
     pure_research: float
-    cv_without_nlp: float
+    domain_mismatch: float
     salary_inverted: float
     experience_gap: float
     job_hopper: float
@@ -34,8 +34,10 @@ class PenaltyScore:
     total_penalty: float
 
 
-def _consulting_only_penalty(candidate: Candidate) -> float:
+def _consulting_only_penalty(candidate: Candidate, role_profile: RoleProfile) -> float:
     """Penalty if all career history is at consulting/services firms."""
+    if not role_profile.prefs.penalize_consulting_only:
+        return 0.0
     if not candidate.career_history:
         return 0.0
     for entry in candidate.career_history:
@@ -53,8 +55,16 @@ def _is_research_title(title: str) -> bool:
     return any(lowered.startswith(pattern) or lowered.endswith(pattern) for pattern in PHD_TITLE_PATTERNS)
 
 
-def _pure_research_penalty(candidate: Candidate, career_evidence: CareerEvidence) -> float:
+def _pure_research_penalty(
+    candidate: Candidate,
+    career_evidence: CareerEvidence,
+    role_profile: RoleProfile,
+) -> float:
     """Penalty for research-only titles without production deployment evidence."""
+    if not role_profile.prefs.penalize_pure_research:
+        return 0.0
+    if not role_profile.prefs.values_production_experience:
+        return 0.0
     if not _is_research_title(candidate.profile.current_title):
         return 0.0
     production_terms = [
@@ -67,17 +77,22 @@ def _pure_research_penalty(candidate: Candidate, career_evidence: CareerEvidence
     return 1.0
 
 
-def _cv_without_nlp_penalty(candidate: Candidate, career_evidence: CareerEvidence) -> float:
-    """Penalty for CV/speech/robotics titles without NLP/IR evidence."""
+def _domain_mismatch_penalty(
+    candidate: Candidate,
+    career_evidence: CareerEvidence,
+    role_profile: RoleProfile,
+) -> float:
+    """Penalty when title suggests a specialized ML subdomain without JD evidence."""
+    if not role_profile.prefs.penalize_domain_mismatch:
+        return 0.0
+    keywords = role_profile.prefs.required_evidence_keywords
+    if not keywords:
+        return 0.0
     title = candidate.profile.current_title.lower()
     if not any(cv in title for cv in CV_SPEECH_ROBOTICS_TITLES):
         return 0.0
-    nlp_ir_terms = [
-        "nlp", "natural language", "retrieval", "ranking", "search", "transformer",
-        "bert", "llm", "rag", "semantic search", "embedding",
-    ]
     career_text = " ".join(entry.description.lower() for entry in candidate.career_history)
-    if any(term in career_text for term in nlp_ir_terms):
+    if any(kw in career_text for kw in keywords):
         return 0.0
     return 1.0
 
@@ -115,11 +130,7 @@ def _seniority_mismatch_penalty(
     career_evidence,
     role_profile: RoleProfile,
 ) -> float:
-    """Soft penalty when JD expects senior experience but candidate lacks ML tenure.
-
-    Only fires when role_profile.seniority is 'senior' AND the candidate's computed
-    ML-specific experience is below the threshold, not just total years of experience.
-    """
+    """Soft penalty when JD expects senior experience but candidate lacks ML tenure."""
     if role_profile.seniority != "senior":
         return 0.0
     ml_years = getattr(career_evidence, "years_of_ml_experience", 0.0)
@@ -156,13 +167,18 @@ def compute_penalties(
         and len(ml_skills) >= (9 if title_domain == TitleDomain.AI_ADJACENT else 7)
     ) else 0.0
 
-    consulting_only = _consulting_only_penalty(candidate)
-    pure_research = _pure_research_penalty(candidate, career_evidence)
-    cv_without_nlp = _cv_without_nlp_penalty(candidate, career_evidence)
+    consulting_only = _consulting_only_penalty(candidate, role_profile)
+    pure_research = _pure_research_penalty(candidate, career_evidence, role_profile)
+    domain_mismatch = _domain_mismatch_penalty(candidate, career_evidence, role_profile)
     salary_inverted = _salary_inverted_penalty(candidate)
     experience_gap = _experience_gap_penalty(candidate, role_profile)
     job_hopper = _job_hopper_penalty(candidate)
     seniority_mismatch = _seniority_mismatch_penalty(candidate, career_evidence, role_profile)
+
+    domain_weight = penalty_weights.get(
+        "domain_mismatch",
+        penalty_weights.get("cv_without_nlp", 0.07),
+    )
 
     total = (
         penalty_weights.get("template_mismatch", 0.20) * template_mismatch
@@ -172,7 +188,7 @@ def compute_penalties(
         + penalty_weights.get("non_ml_title_high_skill", 0.10) * non_ml_high
         + penalty_weights.get("consulting_only", 0.07) * consulting_only
         + penalty_weights.get("pure_research", 0.07) * pure_research
-        + penalty_weights.get("cv_without_nlp", 0.07) * cv_without_nlp
+        + domain_weight * domain_mismatch
         + penalty_weights.get("salary_inverted", 0.07) * salary_inverted
         + penalty_weights.get("experience_gap", 0.05) * experience_gap
         + penalty_weights.get("job_hopper", 0.04) * job_hopper
@@ -189,7 +205,7 @@ def compute_penalties(
         non_ml_title_high_skill=non_ml_high,
         consulting_only=consulting_only,
         pure_research=pure_research,
-        cv_without_nlp=cv_without_nlp,
+        domain_mismatch=domain_mismatch,
         salary_inverted=salary_inverted,
         experience_gap=experience_gap,
         job_hopper=job_hopper,

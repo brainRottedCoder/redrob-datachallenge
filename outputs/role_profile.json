@@ -47,5 +47,28 @@
   "seniority": "senior",
   "min_experience_years": 6.0,
   "preferred_work_mode": "hybrid",
-  "domain": "GenAI"
+  "domain": "GenAI",
+  "prefs": {
+    "domain": "GenAI",
+    "required_evidence_keywords": [
+      "llm",
+      "fine-tuning",
+      "rag",
+      "prompt",
+      "generative",
+      "transformer"
+    ],
+    "penalize_consulting_only": true,
+    "penalize_pure_research": true,
+    "penalize_domain_mismatch": true,
+    "preferred_locations": [
+      "pune",
+      "noida",
+      "mumbai",
+      "delhi",
+      "hyderabad",
+      "india"
+    ],
+    "values_production_experience": true
+  }
 }

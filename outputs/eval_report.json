@@ -1,0 +1,70 @@
+{
+  "runtime_seconds": 0.17,
+  "ground_truth_summary": {
+    "irrelevant": 49,
+    "ai_adjacent": 1
+  },
+  "baseline": {
+    "ndcg": {
+      "@10": 1.0,
+      "@100": 1.0
+    },
+    "precision": {
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "honeypot_exclusion_rate": 1.0,
+    "honeypots_in_top_100": 0,
+    "genuine_in_top_100": 0,
+    "title_diversity": {
+      "title_counts": {
+        "Frontend Engineer": 3,
+        "Project Manager": 2,
+        "Software Engineer": 2,
+        "Recommendation Systems Engineer": 1,
+        "Cloud Engineer": 1,
+        "Backend Engineer": 1,
+        "Data Engineer": 1,
+        "DevOps Engineer": 1,
+        "QA Engineer": 1,
+        ".NET Developer": 1,
+        "Full Stack Developer": 1,
+        "Java Developer": 1,
+        "Mechanical Engineer": 1,
+        "HR Manager": 1,
+        "Mobile Developer": 1,
+        "Business Analyst": 1
+      },
+      "unique_title_count": 16,
+      "entropy": 3.8842
+    }
+  },
+  "fitrank": {
+    "ndcg": {
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "precision": {
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "honeypot_exclusion_rate": 1.0,
+    "honeypots_in_top_100": 0,
+    "genuine_in_top_100": 0,
+    "title_diversity": {
+      "title_counts": {},
+      "unique_title_count": 0,
+      "entropy": 0.0
+    }
+  },
+  "improvements": {
+    "ndcg@10_pct": -100.0,
+    "ndcg@100_pct": -100.0,
+    "precision@100_pct": null
+  },
+  "paths": {
+    "ground_truth": "outputs\\ground_truth.jsonl",
+    "baseline_submission": "outputs\\baseline_submission.csv",
+    "fitrank_submission": "outputs\\submission.csv"
+  }
+}

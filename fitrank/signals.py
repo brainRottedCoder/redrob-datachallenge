@@ -108,7 +108,7 @@ def _availability_score(candidate: Candidate, role_profile: RoleProfile) -> floa
     otw = float(signals.open_to_work_flag)
     notice = 1.0 - min(signals.notice_period_days, 150) / 150.0
     relocate = float(signals.willing_to_relocate)
-    location_bonus = _location_bonus(candidate)
+    location_bonus = _location_bonus(candidate, role_profile)
     recency = _recency_score(signals)
     response = _response_score(signals)
 
@@ -124,18 +124,26 @@ def _availability_score(candidate: Candidate, role_profile: RoleProfile) -> floa
     return max(0.0, min(1.0, availability))
 
 
-def _location_bonus(candidate: Candidate) -> float:
-    """Small bonus for candidates in India/Tier-1 cities or willing to relocate."""
+def _location_bonus(candidate: Candidate, role_profile: RoleProfile) -> float:
+    """Location fit based on JD preferred locations, or neutral when unspecified."""
+    preferred = role_profile.prefs.preferred_locations
+    if not preferred:
+        return 0.5
+
     signals = candidate.redrob_signals
     location = candidate.profile.location.lower()
     country = candidate.profile.country.lower()
 
     if signals.willing_to_relocate:
         return 0.8
-    if country in {"india", "in"}:
+    if any(loc in location or loc in country for loc in preferred):
+        return 1.0
+    if "india" in preferred and country in {"india", "in"}:
         if any(city in location for city in INDIAN_TIER1):
             return 1.0
         return 0.5
+    if "remote" in preferred and signals.preferred_work_mode == "remote":
+        return 1.0
     return 0.0
 
 

@@ -8,30 +8,42 @@ __pycache__/
 .env
 .venv/
 venv/
+.pytest_cache/
 
 # OS / IDE
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+.cursor/
 __MACOSX/
 
-# Original challenge pack folder (duplicated in data/ and docs/)
+# Original challenge pack folder (duplicated in data/)
 [PUB]*/
 
-# Training artifacts (regenerate with make train)
+# Regenerable training artifacts
 outputs/training_features.csv
 outputs/training_report.json
+outputs/role_profile.json
+outputs/ground_truth.jsonl
+outputs/baseline_submission.csv
+outputs/submission_calibrated.csv
+outputs/rank.log
 
 # Semantic embedding artifacts (regenerate with make precompute)
 outputs/candidate_embeddings.npz
+outputs/candidate_embeddings.npy
 outputs/candidate_embedding_ids.json
+outputs/candidate_ids.json
 outputs/embedding_manifest.json
 outputs/candidate_vectors.jsonl
 
 # LLM reasoning cache (regenerate with make precompute-reasoning)
 outputs/reasoning_cache.jsonl
 
+# Models (large binaries)
 models/*
 !models/.gitkeep
 !models/fitrank_lgb.txt
+models/**/*.gguf
+models/all-MiniLM-L6-v2/
