@@ -183,7 +183,7 @@ make test                                   # full suite including 100K integrat
 |------------|--------|
 | CPU only | ✓ No GPU inference |
 | No network during ranking | ✓ All models cached locally |
-| ≤ 5 min on 100K candidates | ✓ ~284 s with pre-computed embeddings |
+| ≤ 5 min on 100K candidates | ✓ **199.5 s** with pre-computed embeddings (see `outputs/audit_report.json`) |
 | Deterministic output | ✓ Same inputs → same ranking |
 | Explainable reasoning | ✓ 100 rows with component scores |
 

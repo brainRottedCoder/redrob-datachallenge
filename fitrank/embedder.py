@@ -162,9 +162,17 @@ def semantic_match_from_precomputed(
     """Compute semantic match using pre-computed candidate embeddings."""
     if jd_embedding.size == 0:
         return 0.0
-    cand_embedding = embeddings.get(candidate_id)
-    if cand_embedding is None:
-        return 0.0
+    matrix = embeddings.get("__matrix__")
+    id_to_index = embeddings.get("__id_to_index__")
+    if matrix is not None and id_to_index is not None:
+        index = id_to_index.get(candidate_id)
+        if index is None:
+            return 0.0
+        cand_embedding = matrix[index]
+    else:
+        cand_embedding = embeddings.get(candidate_id)
+        if cand_embedding is None:
+            return 0.0
     return semantic_similarity(jd_embedding, cand_embedding)
 
 
@@ -274,7 +282,9 @@ def load_candidate_embeddings(
     candidate_ids = json.loads(id_path.read_text(encoding="utf-8"))
     if len(candidate_ids) != matrix.shape[0]:
         raise ValueError("Embedding count does not match candidate id list length.")
-    return {candidate_id: matrix[index] for index, candidate_id in enumerate(candidate_ids)}
+    # Matrix row lookup is faster than materializing 100K separate dict entries.
+    id_to_index = {candidate_id: index for index, candidate_id in enumerate(candidate_ids)}
+    return {"__matrix__": matrix, "__id_to_index__": id_to_index}
 
 
 # Backward-compatible aliases.

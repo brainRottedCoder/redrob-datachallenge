@@ -57,8 +57,8 @@ def test_precompute_and_load_round_trip(tmp_path, sample_path):
     loaded = load_candidate_embeddings(embeddings_path, ids_path)
     assert loaded is not None
     first_id = json.loads(ids_path.read_text(encoding="utf-8"))[0]
-    assert first_id in loaded
-    assert loaded[first_id].shape == (EMBEDDING_DIM,)
+    index = loaded["__id_to_index__"][first_id]
+    assert loaded["__matrix__"][index].shape == (EMBEDDING_DIM,)
 
 
 def test_batch_encode_candidates_from_loader(sample_path):

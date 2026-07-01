@@ -16,6 +16,7 @@ from fitrank.features import RankingFeatures
 DEFAULT_MODEL_PATH = Path("models") / "fitrank_lgb.txt"
 # Blend learned probability with heuristic score to preserve probe/trap ordering.
 LEARNED_BLEND_WEIGHT = 0.55
+_model_cache: dict[str, Any] = {}
 
 
 def is_model_available(model_path: str | Path | None = None) -> bool:
@@ -26,18 +27,29 @@ def is_model_available(model_path: str | Path | None = None) -> bool:
 
 def load_model(model_path: str | Path | None = None) -> Any | None:
     """Load a trained LightGBM model from disk, or return None if missing."""
+    source = Path(model_path) if model_path else DEFAULT_MODEL_PATH
+    cache_key = str(source.resolve())
+    if cache_key in _model_cache:
+        return _model_cache[cache_key]
+
     try:
         import lightgbm as lgb
     except Exception:
         return None
 
-    source = Path(model_path) if model_path else DEFAULT_MODEL_PATH
     if not source.exists():
         return None
     try:
-        return lgb.Booster(model_file=str(source))
+        model = lgb.Booster(model_file=str(source))
+        _model_cache[cache_key] = model
+        return model
     except Exception:
         return None
+
+
+def clear_model_cache() -> None:
+    """Clear cached models (for tests)."""
+    _model_cache.clear()
 
 
 def _model_feature_count_matches(model: Any, features: RankingFeatures) -> bool:

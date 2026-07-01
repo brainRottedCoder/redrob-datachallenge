@@ -13,7 +13,7 @@ from collections import Counter
 from pathlib import Path
 
 from fitrank.calibrator import calibrate_scores, rescale_submission_scores
-from fitrank.embedder import encode_jd
+from fitrank.embedder import encode_jd, load_candidate_embeddings
 from fitrank.jd_parser import parse_jd, save_role_profile
 from fitrank.loader import load_candidates
 from fitrank.llm_reasoning import (
@@ -26,7 +26,7 @@ from fitrank.llm_reasoning import (
     jd_fingerprint,
     resolve_reasoning,
 )
-from fitrank.ranker import load_capability_vectors, load_weights, rank_candidates
+from fitrank.ranker import load_weights, rank_candidates
 from fitrank.reasoning import build_reasoning
 
 
@@ -141,8 +141,13 @@ def main() -> int:
     save_role_profile(role_profile)
 
     weights = load_weights(args.weights)
-    candidate_embeddings = load_capability_vectors()
-    jd_embedding = encode_jd(jd_text)
+    candidate_embeddings = load_candidate_embeddings(
+        "outputs/candidate_embeddings.npy",
+        "outputs/candidate_ids.json",
+    )
+    # Only encode JD when pre-computed candidate embeddings exist; otherwise use sparse matching
+    # and avoid batch-encoding 100K profiles on the fly (exceeds 5-minute budget).
+    jd_embedding = encode_jd(jd_text) if candidate_embeddings else None
     ranked = rank_candidates(
         load_candidates(args.candidates, validate=False),
         role_profile,

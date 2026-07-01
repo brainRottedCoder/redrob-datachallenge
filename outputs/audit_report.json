@@ -1,5 +1,5 @@
 {
-  "runtime_seconds": 7572.45,
+  "runtime_seconds": 199.54,
   "title_distribution": {
     "Senior AI Engineer": 2,
     "AI Engineer": 18,
@@ -7,27 +7,27 @@
     "Senior Machine Learning Engineer": 4,
     "Senior Applied Scientist": 2,
     "Senior NLP Engineer": 6,
-    "AI Specialist": 15,
+    "AI Specialist": 16,
     "Staff Machine Learning Engineer": 4,
     "Applied ML Engineer": 7,
     "Machine Learning Engineer": 3,
     "Senior Data Scientist": 4,
     "Junior ML Engineer": 4,
-    "NLP Engineer": 4,
+    "NLP Engineer": 3,
     "Computer Vision Engineer": 7,
     "ML Engineer": 9,
     "Data Scientist": 5,
     "Search Engineer": 1,
     "AI Research Engineer": 3
   },
-  "ranking_mode": "heuristic",
+  "ranking_mode": "auto",
   "model_path": "models/fitrank_lgb.txt",
   "reasoning_mode": "template",
   "honeypot_flags_in_shortlist": 0,
   "score_histogram": {
     "min": 0.55,
     "max": 0.95,
-    "mean": 0.6347
+    "mean": 0.6345
   },
   "top_5": [
     {
@@ -39,25 +39,25 @@
     {
       "candidate_id": "CAND_0055992",
       "title": "AI Engineer",
-      "final_score": 0.8748,
+      "final_score": 0.875,
       "reasoning": "AI Engineer | JD=0.80 Career=0.44 Coh=0.83 Trust=0.81 | current role: RAG,embedding,Pinecone; assessments RAG=87, MLflow=71; GH 65; 16.9yrs total/6.7yrs ML (OTW/60d notice/reloc)"
     },
     {
       "candidate_id": "CAND_0081846",
       "title": "Lead AI Engineer",
-      "final_score": 0.8666,
+      "final_score": 0.8669,
       "reasoning": "Lead AI Engineer | JD=0.78 Career=0.52 Coh=0.80 Trust=0.71 | current role: RAG,embedding,FAISS; assessments LlamaIndex=68; GH 34; 6.7yrs total/6.6yrs ML India (OTW/\u226430d notice/reloc)"
     },
     {
       "candidate_id": "CAND_0018499",
       "title": "Senior Machine Learning Engineer",
-      "final_score": 0.8581,
+      "final_score": 0.8573,
       "reasoning": "Senior Machine Learning Engineer | JD=0.40 Career=0.70 Coh=0.84 Trust=0.89 | current role: RAG,embedding,FAISS; assessments Weaviate=72; GH 95; 7.2yrs total/7.2yrs ML Noida (OTW/\u226430d notice/reloc)"
     },
     {
       "candidate_id": "CAND_0079387",
       "title": "AI Engineer",
-      "final_score": 0.846,
+      "final_score": 0.8462,
       "reasoning": "AI Engineer | JD=0.76 Career=0.47 Coh=0.78 Trust=0.79 | current role: embedding,sentence-transformer,recommendation; assessments Recommendation Systems=84; GH 64; 6.9yrs total/6.8yrs ML India (OTW/\u226430d notice)"
     }
   ]
